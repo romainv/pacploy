@@ -1,0 +1,26 @@
+{
+	"rules": {
+		"strict": 0,
+		"prettier/prettier": "warn"
+	},
+	"env": {
+		"node": true,
+		"es2017": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:node/recommended",
+		"prettier",
+		"plugin:jest/recommended"
+	],
+	"parserOptions": {
+		"ecmaVersion": 2018,
+		"ecmaFeatures": {
+			"jsx": true
+		}
+	},
+	"plugins": [
+		"prettier",
+		"jest"
+	]
+}
