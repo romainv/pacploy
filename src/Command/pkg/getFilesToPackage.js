@@ -1,9 +1,7 @@
-const getFullPath = require("./getFullPath")
-const parseTemplateFile = require("./parseTemplateFile")
-const ResourceProperty = require("./ResourceProperty")
-const File = require("./File")
-
-module.exports = getFilesToPackage
+import getFullPath from "./getFullPath.js"
+import parseTemplateFile from "./parseTemplateFile.js"
+import ResourceProperty from "./ResourceProperty.js"
+import File from "./File.js"
 
 /**
  * Retrieve the list of unique local files that should be packaged to S3
@@ -12,7 +10,7 @@ module.exports = getFilesToPackage
  * @return {Object} An object whose keys are the absolute path of files to
  * package, and values are File instances describing those files
  */
-function getFilesToPackage(templatePath) {
+export default function getFilesToPackage(templatePath) {
   const toPackage = {}
   parseTemplateFile(
     templatePath,

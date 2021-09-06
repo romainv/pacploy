@@ -1,14 +1,16 @@
+import { jest } from "@jest/globals"
+
 jest.setTimeout(10000) // Below tests require delay
 
 describe("throttle", () => {
   let test1, test2, test3, test4
-  beforeAll(() => {
+  beforeAll(async () => {
     // Reset throttle module to avoid interference with other tests
     jest.resetModules()
-    const throttle = require("./throttle")
+    const { default: throttle, setRate, abort } = await import("./throttle.js")
     const intervalMs = 2000 // Rate interval
     // Set the rate limit for tests (5 requests/2sec)
-    throttle.setRate(5, intervalMs)
+    setRate(5, intervalMs)
     // Run tests synchronously as the queue is shared
     let attempted = [] // Will contain all attempted requests
     let executed = 0 // Keep track of how many requests were executed
@@ -60,7 +62,7 @@ describe("throttle", () => {
     })
     // Abort the rest of the queue
     test4 = test3.then(async () => {
-      throttle.abort()
+      abort()
       await Promise.all(attempted) // Wait for all requests to be aborted
       return { attempted: attempted.length, executed, aborted }
     })

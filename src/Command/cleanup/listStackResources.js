@@ -1,6 +1,6 @@
-const withTracker = require("../../with-tracker")
-const supported = require("./supported")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import supported from "./supported.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve the resources associated with a live stack, recursively for nested
@@ -12,7 +12,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * @return {Array} The list of resource arns
  */
 async function listStackResources({ region, stackName, nextToken }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("retrieving stack resources")
   // Retrieve list of resources for the current stack
   const { StackResourceSummaries, NextToken } = await cf.listStackResources({
@@ -124,4 +124,4 @@ async function listStackResources({ region, stackName, nextToken }) {
     : resources
 }
 
-module.exports = withTracker()(listStackResources)
+export default withTracker()(listStackResources)

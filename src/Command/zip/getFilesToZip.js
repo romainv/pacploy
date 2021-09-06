@@ -1,15 +1,16 @@
-module.exports = getFilesToZip
-const { join, resolve, relative, isAbsolute, dirname } = require("path")
-const {
-  alwaysInclude: alwaysIncludePatterns,
-  alwaysIgnore: alwaysIgnorePatterns,
-  defaultIgnore: defaultIgnorePatterns,
-} = require("./defaults")
-const findUp = require("find-up")
-const locatePath = require("locate-path")
-const { readFileSync, readFile, existsSync } = require("fs")
-const getFilesMatching = require("./getFilesMatching")
-const Module = require("module")
+import { join, resolve, relative, isAbsolute, dirname } from "path"
+import {
+  alwaysInclude as alwaysIncludePatterns,
+  alwaysIgnore as alwaysIgnorePatterns,
+  defaultIgnore as defaultIgnorePatterns,
+} from "./defaults.js"
+import { findUp } from "find-up"
+import { locatePath } from "locate-path"
+import { readFileSync, readFile, existsSync } from "fs"
+import getFilesMatching from "./getFilesMatching.js"
+import Module, { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
 
 /**
  * Collect the list of files to add to the zip archive
@@ -19,7 +20,7 @@ const Module = require("module")
  * @return {Map} A mapping of the full paths of files in the filesystem with
  * their path in the archive
  */
-async function getFilesToZip(dir, bundleDir) {
+export default async function getFilesToZip(dir, bundleDir) {
   const files = new Map() // Will contain the list of files to bundle
   // Retrieve package configuration, if any
   const packagePath = await findUp([".pacployrc", "package.json"], { cwd: dir })

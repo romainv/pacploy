@@ -1,9 +1,12 @@
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const getChangeSetArgs = require("./getChangeSetArgs")
-const waitForStatus = require("../waitForStatus")
-const deleteChangeSets = require("../deleteChangeSets")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import {
+  createSuccess as createSuccessStatuses,
+  createFailed as createFailedStatuses,
+} from "../statuses.js"
+import getChangeSetArgs from "./getChangeSetArgs.js"
+import waitForStatus from "../waitForStatus/index.js"
+import deleteChangeSets from "../deleteChangeSets/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Create a change set for the supplied stack
@@ -32,7 +35,7 @@ async function createChangeSet({
   quiet = false,
   attempts = 0,
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   if (!quiet) this.tracker.setStatus("creating change set")
   // Retrieve creation arguments
   const args = await getChangeSetArgs.call(this, {
@@ -75,8 +78,8 @@ async function createChangeSet({
   const res = await waitForStatus.call(this, {
     region,
     arn: changeSetArn,
-    success: statuses.createSuccess,
-    failure: statuses.createFailed,
+    success: createSuccessStatuses,
+    failure: createFailedStatuses,
     msg: "",
   })
   let hasChanges = true // Indicate whether the stack has any changes
@@ -100,4 +103,4 @@ async function createChangeSet({
   return { changeSetArn, hasChanges }
 }
 
-module.exports = withTracker()(createChangeSet)
+export default withTracker()(createChangeSet)

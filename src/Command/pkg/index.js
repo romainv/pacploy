@@ -1,9 +1,9 @@
-const getFilesToPackage = require("./getFilesToPackage")
-const withTracker = require("../../with-tracker")
-const packageFiles = require("./packageFiles")
-const zip = require("../zip")
-const tmp = require("tmp")
-const { writeSync } = require("fs")
+import getFilesToPackage from "./getFilesToPackage.js"
+import withTracker from "../../with-tracker/index.js"
+import packageFiles from "./packageFiles.js"
+import zip from "../zip/index.js"
+import tmp from "tmp"
+import { writeSync } from "fs"
 
 /**
  * Package a template and its local resources to S3 for deployment
@@ -89,4 +89,4 @@ async function pkg({
   return packagedTemplatePath
 }
 
-module.exports = withTracker()(pkg)
+export default withTracker()(pkg)

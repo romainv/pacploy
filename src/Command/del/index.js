@@ -1,9 +1,12 @@
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const getStatus = require("../getStatus")
-const waitForStatus = require("../waitForStatus")
-const cleanup = require("../cleanup")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import {
+  deleteSuccess as deleteSuccessStatuses,
+  deleteFailed as deleteFailedStatuses,
+} from "../statuses.js"
+import getStatus from "../getStatus/index.js"
+import waitForStatus from "../waitForStatus/index.js"
+import cleanup from "../cleanup/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Delete a stack and its retained resources
@@ -15,7 +18,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * @return {String} The stack status after attempting to delete it
  */
 async function del({ region, stackName, forceDelete }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Check if stack exists
   const stackStatus = await getStatus.call(this, { region, stackName })
   // Ask user confirmation
@@ -60,16 +63,16 @@ async function del({ region, stackName, forceDelete }) {
  * @return {Boolean} Whether the deletion succeeded
  */
 async function _del({ region, stackId }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   await cf.deleteStack({ StackName: stackId })
   const res = await waitForStatus.call(this, {
     region,
     arn: stackId,
-    success: statuses.deleteSuccess,
-    failure: statuses.deleteFailed,
+    success: deleteSuccessStatuses,
+    failure: deleteFailedStatuses,
     msg: "deleting stack",
   })
   return res === true ? res : false
 }
 
-module.exports = withTracker()(del)
+export default withTracker()(del)

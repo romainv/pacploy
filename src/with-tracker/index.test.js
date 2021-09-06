@@ -1,27 +1,40 @@
-let withTracker
+import Tracker from "./Tracker.js"
+let withTracker, tracker
 
 describe("withTracker", () => {
-  beforeEach(() => {
-    // Make sure to reset the module between tests
-    jest.resetModules()
-    withTracker = require("./index")
+  beforeEach(async () => {
+    // Make sure to use a different tracker for each test
+    withTracker = (await import("./index.js")).default
+    tracker = new Tracker()
   })
 
   test("provides tracker for objects", () => {
-    const tracked = withTracker()({})
+    const tracked = withTracker({}, {}, tracker)({})
     expect(tracked.tracker.constructor.name).toEqual("Tracker")
   })
 
   test("provides tracker defs for functions", () => {
-    const tracked = withTracker({ estimate: () => 1 })(function () {})
+    const tracked = withTracker(
+      { estimate: () => 1 },
+      {},
+      tracker
+    )(function () {})
     expect(tracked.estimate()).toEqual(1)
   })
 
   test("keeps context if requested", () => {
-    const fn1 = withTracker()(function (prop) {
+    const fn1 = withTracker(
+      {},
+      {},
+      tracker
+    )(function (prop) {
       return fn2.call(this, prop)
     })
-    const fn2 = withTracker()(function (prop) {
+    const fn2 = withTracker(
+      {},
+      {},
+      tracker
+    )(function (prop) {
       return this[prop]
     })
     expect(fn1.call({ foo: "bar" }, "foo")).toEqual("bar")
@@ -47,7 +60,8 @@ describe("withTracker", () => {
         },
         name: "parent",
       },
-      { autoComplete: false }
+      { autoComplete: false },
+      tracker
     )(
       /**
        * Dummy function that multiples every element of an array by a value and
@@ -84,7 +98,8 @@ describe("withTracker", () => {
         },
         name: "child",
       },
-      { autoComplete: false }
+      { autoComplete: false },
+      tracker
     )(async function _sub(el) {
       // Note: this.extraTicks is shared across all executions
       this.extraTicks += el // Arbitrary extra ticks
@@ -98,13 +113,13 @@ describe("withTracker", () => {
     const context = { multiply: (n, by) => n * by, params: args }
     const multiplied = await addMultiply.call(context, args)
     expect(multiplied).toEqual(12)
-    expect(withTracker.tracker.total).toEqual(
+    expect(tracker.total).toEqual(
       toMultiply.reduce((total, el) => total + 1 + el + 1, 0)
     )
-    expect(withTracker.tracker.ticks).toEqual(
+    expect(tracker.ticks).toEqual(
       toMultiply.reduce((total, el) => total + 1 + el, 0)
     )
-    expect(withTracker.tracker.remainingTicks).toEqual(
+    expect(tracker.remainingTicks).toEqual(
       toMultiply.reduce((total) => total + 1, 0)
     )
   })
@@ -112,13 +127,14 @@ describe("withTracker", () => {
   test("enables autoComplete", () => {
     const fn = withTracker(
       { estimate: () => 10 },
-      { autoComplete: true }
+      { autoComplete: true },
+      tracker
     )(function () {
       this.tracker.tick()
     })
     fn()
-    expect(withTracker.tracker.total).toEqual(10)
-    expect(withTracker.tracker.ticks).toEqual(10)
-    expect(withTracker.tracker.remainingTicks).toEqual(0)
+    expect(tracker.total).toEqual(10)
+    expect(tracker.ticks).toEqual(10)
+    expect(tracker.remainingTicks).toEqual(0)
   })
 })

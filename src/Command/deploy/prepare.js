@@ -1,8 +1,11 @@
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const getStatus = require("../getStatus")
-const del = require("../del")
-const waitForStatus = require("../waitForStatus")
+import withTracker from "../../with-tracker/index.js"
+import {
+  stable as stableStatuses,
+  needsDelete as needsDeleteStatuses,
+} from "../statuses.js"
+import getStatus from "../getStatus/index.js"
+import del from "../del/index.js"
+import waitForStatus from "../waitForStatus/index.js"
 
 /**
  * Prepares a stack for deployment: this will delete it if necessary
@@ -17,14 +20,14 @@ async function prepare({ region, stackName, forceDelete = false }) {
   if (forceDelete) this.tracker.interruptInfo("force-delete is set")
   // Check current stack status
   let status = await getStatus.call(this, { region, stackName })
-  if (!statuses.stable.includes(status))
+  if (!stableStatuses.includes(status))
     // Wait for stack to be in a stable status
     await waitForStatus.call(this, {
       region,
       arn: stackName,
-      success: statuses.stable,
+      success: stableStatuses,
     })
-  if (forceDelete || statuses.needsDelete.includes(status)) {
+  if (forceDelete || needsDeleteStatuses.includes(status)) {
     if (!forceDelete)
       // Information on the delete prompt
       this.tracker.interruptWarn(
@@ -41,4 +44,4 @@ async function prepare({ region, stackName, forceDelete = false }) {
   return status
 }
 
-module.exports = withTracker()(prepare)
+export default withTracker()(prepare)

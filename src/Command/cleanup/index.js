@@ -1,10 +1,10 @@
-const withTracker = require("../../with-tracker")
-const deleteResource = require("./deleteResource")
-const listRetainedResources = require("./listRetainedResources")
-const listStackResources = require("./listStackResources")
-const listPackagedFiles = require("../pkg/listPackagedFiles")
-const getStatus = require("../getStatus")
-const emptyBucket = require("./emptyBucket")
+import withTracker from "../../with-tracker/index.js"
+import deleteResource from "./deleteResource.js"
+import listRetainedResources from "./listRetainedResources.js"
+import listStackResources from "./listStackResources.js"
+import listPackagedFiles from "../pkg/listPackagedFiles.js"
+import getStatus from "../getStatus/index.js"
+import emptyBucket from "./emptyBucket.js"
 
 /**
  * Delete retained resources created by a stack but not associated with it
@@ -104,4 +104,4 @@ async function cleanup({
   }
 }
 
-module.exports = withTracker()(cleanup)
+export default withTracker()(cleanup)

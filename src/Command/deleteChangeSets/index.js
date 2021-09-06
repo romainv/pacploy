@@ -1,6 +1,6 @@
-const withTracker = require("../../with-tracker")
-const getChangeSets = require("./getChangeSets")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import getChangeSets from "./getChangeSets.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Delete the change sets associated with a stack
@@ -12,7 +12,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * @return {Array} The list of deleted change set ids
  */
 async function deleteChangeSets({ region, stackName, confirm = true }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Retrieve list of change sets
   const changeSets = await getChangeSets.call(this, { region, stackName })
   // Ask confirmation
@@ -46,4 +46,4 @@ async function deleteChangeSets({ region, stackName, confirm = true }) {
   return changeSetsDeleted
 }
 
-module.exports = withTracker()(deleteChangeSets)
+export default withTracker()(deleteChangeSets)

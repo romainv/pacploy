@@ -7,6 +7,6 @@
  * @param {Object} yargs The yargs instance
  * @return {Object} Updated arguments to be merged into argv
  */
-module.exports = function addRootStackTag({ stackName, stackTags = {} } = {}) {
+export default function addRootStackTag({ stackName, stackTags = {} } = {}) {
   return { stackTags: { ...stackTags, RootStackName: stackName } }
 }

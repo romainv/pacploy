@@ -1,11 +1,11 @@
-const BaseProgressBar = require("progress")
-const colors = require("ansi-colors") // Dependency of enquirer
-const { prompt, Confirm } = require("enquirer")
+import BaseProgressBar from "progress"
+import colors from "ansi-colors" // Dependency of enquirer
+import Enquirer from "enquirer"
 
 /**
  * Add new features and customisations to the default ProgressBar
  */
-module.exports = class ProgressBar extends BaseProgressBar {
+export default class ProgressBar extends BaseProgressBar {
   /**
    * Instantiate a new progress bar
    * @param {String | Number} fmt If a string is provided, it will be used to
@@ -33,8 +33,6 @@ module.exports = class ProgressBar extends BaseProgressBar {
     else throw new Error(`Unsupported type for fmt: ${fmt}`)
     // Initialize the tokens cache
     this._tokens = { status: "", spinner: "" }
-    // Start the spinner
-    this.startSpinner()
   }
 
   /**
@@ -87,6 +85,8 @@ module.exports = class ProgressBar extends BaseProgressBar {
         ) -
         2 // Additional buffer to ensure there is no line wrap
     )
+    // Start the spinner if needed
+    if (!this.spinner) this.startSpinner()
     // Use the parent tick
     return super.tick(len, this._tokens)
   }
@@ -179,7 +179,7 @@ module.exports = class ProgressBar extends BaseProgressBar {
    */
   async prompt(...args) {
     this.hide()
-    const res = await prompt(...args)
+    const res = await Enquirer.prompt(...args)
     this.show()
     return res
   }
@@ -191,7 +191,7 @@ module.exports = class ProgressBar extends BaseProgressBar {
    */
   async confirm(message) {
     this.hide()
-    const confirm = new Confirm({ name: "confirmation", message })
+    const confirm = new Enquirer.Confirm({ name: "confirmation", message })
     const confirmation = await confirm.run()
     this.show()
     return confirmation

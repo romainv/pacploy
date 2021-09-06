@@ -1,8 +1,9 @@
-const findUp = require("find-up")
-const isDir = require("../pkg/isDir")
-const { resolve, basename, dirname } = require("path")
+import { findUp } from "find-up"
+import isDir from "../pkg/isDir.js"
+import { resolve, basename, dirname } from "path"
+import { createRequire } from "module"
 
-module.exports = getArchiveBasename
+const require = createRequire(import.meta.url)
 
 /**
  * Generate a base name for a zip/tar file, based on the directories or files
@@ -10,7 +11,7 @@ module.exports = getArchiveBasename
  * @param {String|Array} paths The directory of file path, or a list of those
  * @return {String} The base name for the archive
  */
-async function getArchiveBasename(paths) {
+export default async function getArchiveBasename(paths) {
   if (!Array.isArray(paths)) paths = [paths] // Convert to array
   // Retrieve the root directory (absolute path) of all supplied paths
   const rootdir = paths

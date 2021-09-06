@@ -1,5 +1,5 @@
-const { createReadStream, createWriteStream, statSync } = require("fs")
-const archiver = require("archiver")
+import { createReadStream, createWriteStream, statSync } from "fs"
+import archiver from "archiver"
 
 /**
  * Zip a list of files
@@ -10,7 +10,7 @@ const archiver = require("archiver")
  * @param {Object} [params.options] The zip or tar options
  * filesystem with their path in the archive
  */
-module.exports = async function zipFiles(zipTo, files, format, options) {
+export default async function zipFiles(zipTo, files, format, options) {
   // Configure the zip archive
   const file = createWriteStream(zipTo)
   const archive = archiver(format, options)

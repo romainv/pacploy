@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-const pacploy = require("./src/index")
-const findUp = require("find-up") // Dependency of yargs
-const Module = require("module")
+import pacploy from "./src/index.js"
+import { findUpSync } from "find-up" // Dependency of yargs
+import Module, { createRequire } from "module"
+
+const require = createRequire(import.meta.url)
 
 // Capture process arguments
 const cliArgs = process.argv.slice(2)
@@ -23,11 +25,11 @@ const userConfPath = cliArgs.includes("--config")
       paths: Module._nodeModulePaths(process.cwd()).concat([process.cwd()]),
     })
   : // Search for pacploy.config up in the tree
-    findUp.sync(["pacploy.config.js", "pacploy.config.json"])
+    findUpSync(["pacploy.config.js", "pacploy.config.json"])
 if (userConfPath) userConf = require(userConfPath)
 else {
   // Search for 'pacploy' entry in the package's package.json
-  const packagePath = findUp.sync("package.json")
+  const packagePath = findUpSync("package.json")
   if (packagePath) {
     ;({ pacploy: userConf } = require(packagePath))
   }

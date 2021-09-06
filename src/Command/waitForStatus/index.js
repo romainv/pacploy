@@ -1,5 +1,5 @@
-const withTracker = require("../../with-tracker")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Waits until a stack or a change set is in a particular status
@@ -23,7 +23,7 @@ async function waitForStatus({
   failure = [],
   msg = "checking status",
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Check if the supplied arn is that of a change set or a stack
   const isChangeSet = /arn:aws:cloudformation:[^:]+:[^:]+:changeSet\/.+/.test(
     arn
@@ -57,4 +57,4 @@ async function waitForStatus({
   }
 }
 
-module.exports = withTracker()(waitForStatus)
+export default withTracker()(waitForStatus)

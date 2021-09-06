@@ -1,14 +1,17 @@
-const withTracker = require("../../with-tracker")
-const errors = require("../errors")
-const statuses = require("../statuses")
-const prepare = require("./prepare")
-const validate = require("./validate")
-const sync = require("../sync")
-const pkg = require("../pkg")
-const createChangeSet = require("../createChangeSet")
-const waitForStatus = require("../waitForStatus")
-const getStackOutputs = require("../sync/getStackOutputs")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import errors from "../errors/index.js"
+import {
+  deploySuccess as deploySuccessStatuses,
+  deployFailed as deployFailedStatuses,
+} from "../statuses.js"
+import prepare from "./prepare.js"
+import validate from "./validate.js"
+import sync from "../sync/index.js"
+import pkg from "../pkg/index.js"
+import createChangeSet from "../createChangeSet/index.js"
+import waitForStatus from "../waitForStatus/index.js"
+import getStackOutputs from "../sync/getStackOutputs.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Check the status of a stack
@@ -39,7 +42,7 @@ async function deploy({
   forceUpload = false,
   syncPath,
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Validate template
   if ((await validate.call(this, { region, templatePath })) !== true) {
     process.exitCode = 1
@@ -74,8 +77,8 @@ async function deploy({
     const deployStatus = await waitForStatus.call(this, {
       region,
       arn: stackName,
-      success: statuses.deploySuccess,
-      failure: statuses.deployFailed,
+      success: deploySuccessStatuses,
+      failure: deployFailedStatuses,
       msg: "deploying",
     })
     if (deployStatus === true) {
@@ -99,4 +102,4 @@ async function deploy({
   }
 }
 
-module.exports = withTracker()(deploy)
+export default withTracker()(deploy)

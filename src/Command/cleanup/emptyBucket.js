@@ -1,5 +1,5 @@
-const withTracker = require("../../with-tracker")
-const { S3 } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Delete all objects inside a versioned S3 bucket
@@ -10,7 +10,7 @@ const { S3 } = require("../../aws-sdk-proxy")
  * @return {Array} The list of deleted change set ids
  */
 async function emptyBucket({ region, bucket, exclude = [] }) {
-  const s3 = new S3({ apiVersion: "2006-03-01", region })
+  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
   for (const objectType of ["Versions", "DeleteMarkers"]) {
     // Remove object versions first, then delete markers
     let nextToken
@@ -41,4 +41,4 @@ async function emptyBucket({ region, bucket, exclude = [] }) {
   }
 }
 
-module.exports = withTracker()(emptyBucket)
+export default withTracker()(emptyBucket)

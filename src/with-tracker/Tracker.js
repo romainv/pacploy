@@ -1,10 +1,10 @@
-const ProgressBar = require("./ProgressBar")
-const onChange = require("on-change")
+import ProgressBar from "./ProgressBar.js"
+import onChange from "on-change"
 
 /**
  * Enable to estimate and track how many ticks a command requires to perform
  */
-class Tracker {
+export default class Tracker {
   /**
    * Class instanciation
    * @param {Object} [defs] An object containing the following synchronous
@@ -249,4 +249,3 @@ class Tracker {
 
 // List of allowed tracker definitions
 Tracker.defs = ["init", "estimate", "update", "name"]
-module.exports = Tracker

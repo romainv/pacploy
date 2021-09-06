@@ -1,7 +1,7 @@
-const { readFileSync } = require("fs")
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import { readFileSync } from "fs"
+import withTracker from "../../with-tracker/index.js"
+import { isNew as isNewStatuses } from "../statuses.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Generate valid arguments to provide to the change set creation request
@@ -24,7 +24,7 @@ async function getChangeSetArgs({
   stackParameters = {},
   stackTags = {},
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Convert templatePath to a Cloudformation argument
   const templateArg = templatePath.startsWith("http")
     ? { TemplateURL: templatePath }
@@ -84,7 +84,7 @@ async function getChangeSetArgs({
       ChangeSetName,
       StackName: stackName,
       Capabilities,
-      ChangeSetType: statuses.isNew.includes(stackStatus) ? "CREATE" : "UPDATE",
+      ChangeSetType: isNewStatuses.includes(stackStatus) ? "CREATE" : "UPDATE",
       Parameters,
       Tags,
     },
@@ -92,4 +92,4 @@ async function getChangeSetArgs({
   )
 }
 
-module.exports = withTracker()(getChangeSetArgs)
+export default withTracker()(getChangeSetArgs)

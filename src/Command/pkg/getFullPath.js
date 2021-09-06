@@ -1,8 +1,6 @@
-const { dirname, resolve } = require("path")
-const isDir = require("./isDir")
-const appendSlash = require("./appendSlash")
-
-module.exports = getFullPath
+import { dirname, resolve } from "path"
+import isDir from "./isDir.js"
+import appendSlash from "./appendSlash.js"
 
 /**
  * Convert a local path relative to another path into an absolute path
@@ -15,7 +13,7 @@ module.exports = getFullPath
  * file's dirname. If ommitted, will use the current working directory
  * @return {String} The absolute path
  */
-function getFullPath(path, relToPath = process.cwd()) {
+export default function getFullPath(path, relToPath = process.cwd()) {
   // Calculate the full path (use file's dirname if relevant)
   const fullPath = resolve(
     isDir(relToPath) ? relToPath : dirname(relToPath),

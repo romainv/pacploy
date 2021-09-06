@@ -1,6 +1,6 @@
-const withTracker = require("../../with-tracker")
-const supported = require("./supported")
-const { ResourceGroupsTaggingAPI } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import supported from "./supported.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve remaining resources based on their tags. This allows to identify
@@ -23,7 +23,7 @@ async function listRetainedResources({
   exclude = [],
   nextToken,
 }) {
-  const rg = new ResourceGroupsTaggingAPI({
+  const rg = new AWS.ResourceGroupsTaggingAPI({
     apiVersion: "2017-01-26",
     region,
   })
@@ -55,4 +55,4 @@ async function listRetainedResources({
     : resources
 }
 
-module.exports = withTracker()(listRetainedResources)
+export default withTracker()(listRetainedResources)

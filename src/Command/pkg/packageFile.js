@@ -1,7 +1,7 @@
-const withTracker = require("../../with-tracker")
-const packageFileToS3 = require("./packageFileToS3")
-const packageFileToECR = require("./packageFileToECR")
-const packageFileInline = require("./packageFileInline")
+import withTracker from "../../with-tracker/index.js"
+import packageFileToS3 from "./packageFileToS3.js"
+import packageFileToECR from "./packageFileToECR.js"
+import packageFileInline from "./packageFileInline.js"
 
 /**
  * Package a local file to S3 if necessary
@@ -22,4 +22,4 @@ async function packageFile({ file, ...params }) {
     )
 }
 
-module.exports = withTracker()(packageFile)
+export default withTracker()(packageFile)

@@ -1,11 +1,9 @@
-module.exports = getResourceName
-
 /**
  * Extract the resource name from its arn
  * @param {String} arn The resource arn
  * @return {String} The resource name
  */
-function getResourceName(arn) {
+export default function getResourceName(arn) {
   let destruct
   // Check the third component of arn:aws:<type>:...
   switch (arn.split(":")[2]) {

@@ -1,6 +1,6 @@
-const AWS = require("../aws-sdk-proxy")
+import AWS from "../aws-sdk-proxy/index.js"
 
-module.exports = {
+const command = {
   command: "cleanup",
   describe:
     "Delete retained resources created by a stack but not associated with it anymore",
@@ -35,3 +35,5 @@ module.exports = {
       })
   },
 }
+
+export default command

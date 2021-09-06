@@ -1,10 +1,10 @@
-const { readFileSync } = require("fs")
+import { readFileSync } from "fs"
 
 /**
  * Represents a Cloudformation resource property to understand its current
  * packaging status
  */
-module.exports = class ResourceProperty {
+export default class ResourceProperty {
   /**
    * Instantiate the class
    * @param {String} resourceType The resource Type

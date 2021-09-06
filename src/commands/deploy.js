@@ -1,6 +1,6 @@
-const AWS = require("../aws-sdk-proxy")
+import AWS from "../aws-sdk-proxy/index.js"
 
-module.exports = {
+const command = {
   command: "deploy",
   describe: "Deploy a template",
   builder: (yargs) => {
@@ -38,3 +38,5 @@ module.exports = {
       })
   },
 }
+
+export default command

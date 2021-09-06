@@ -1,4 +1,4 @@
-const getMethodNames = require("./getMethodNames")
+import getMethodNames from "./getMethodNames.js"
 
 describe("getMethodNames", () => {
   test("works", () => {

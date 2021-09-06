@@ -1,8 +1,6 @@
-const { yamlParse } = require("yaml-cfn")
-const { readFileSync } = require("fs")
-const getFullPath = require("./getFullPath")
-
-module.exports = parseTemplateFile
+import { yamlParse } from "yaml-cfn"
+import { readFileSync } from "fs"
+import getFullPath from "./getFullPath.js"
 
 /**
  * Recursively parse a local template's resource properties and execute a
@@ -10,7 +8,7 @@ module.exports = parseTemplateFile
  * @param {String} templatePath The local path to the template to parse
  * @param {Function} fn The synchronous function to execute
  */
-function parseTemplateFile(templatePath, fn) {
+export default function parseTemplateFile(templatePath, fn) {
   // Parse the template depending on its format
   const template = yamlParse(readFileSync(templatePath, "utf8"))
   // Recursively package the properties of the template resources

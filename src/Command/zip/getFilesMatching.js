@@ -1,8 +1,6 @@
-const glob = require("glob")
-const { join, resolve } = require("path")
-const { stat } = require("fs")
-
-module.exports = getFilesMatching
+import glob from "glob"
+import { join, resolve } from "path"
+import { stat } from "fs"
 
 /**
  * Retrieve the list of files matched by patterns. This ignores directories as
@@ -16,7 +14,7 @@ module.exports = getFilesMatching
  * @param {Object} [...params] Other parameters will be passed as glob options
  * @return {Set} The list of distinct relative paths to the matching files
  */
-async function getFilesMatching(
+export default async function getFilesMatching(
   patterns,
   { cwd, ignore = new Set(), ...options } = {}
 ) {

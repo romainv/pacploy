@@ -1,13 +1,10 @@
-const Tracker = require("./Tracker")
+import Tracker from "./Tracker.js"
 
 // Instanciate a shared tracker whose main function will be to create and
 // update a progress bar
-const mainTracker = new Tracker({
+export const tracker = new Tracker({
   name: "main",
 })
-
-module.exports = withTracker
-module.exports.tracker = mainTracker
 
 /**
  * Enable to track changes to an object or progress of a function
@@ -31,7 +28,11 @@ module.exports.tracker = mainTracker
  * 	  property of the object, and in the function's context (using
  * 	  'this.tracker' inside the function)
  */
-function withTracker(trackerDefs = {}, options = {}, parent = mainTracker) {
+export default function withTracker(
+  trackerDefs = {},
+  options = {},
+  parent = tracker
+) {
   return (obj) => {
     // Create a tracked version of the object
     if (typeof obj !== "function")

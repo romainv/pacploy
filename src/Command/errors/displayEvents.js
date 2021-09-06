@@ -1,6 +1,4 @@
-const colors = require("ansi-colors")
-
-module.exports = displayEvents
+import colors from "ansi-colors"
 
 /**
  * Recursively display the events tree. You need to call it with a tracker
@@ -9,7 +7,7 @@ module.exports = displayEvents
  * @param {String} [delimiter=' '] The character to display for indentation
  * @param {Number} [indentation=1] The current indentation level
  */
-function displayEvents(
+export default function displayEvents(
   { ResourceStatus, ResourceStatusReason, LogicalResourceId, resources = {} },
   delimiter = " ",
   indentation = 1

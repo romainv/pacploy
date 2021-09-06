@@ -1,7 +1,7 @@
 /**
  * Represents a local file to package to S3
  */
-module.exports = class File {
+export default class File {
   /**
    * Instantiate the class
    * @param {String} path Absolute path to the local file, which uniquely

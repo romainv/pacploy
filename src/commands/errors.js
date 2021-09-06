@@ -1,6 +1,6 @@
-const AWS = require("../aws-sdk-proxy")
+import AWS from "../aws-sdk-proxy/index.js"
 
-module.exports = {
+const command = {
   command: "errors",
   describe: "Display the latest errors on the stack",
   builder: (yargs) => {
@@ -18,3 +18,5 @@ module.exports = {
       })
   },
 }
+
+export default command

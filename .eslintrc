@@ -5,16 +5,17 @@
 	},
 	"env": {
 		"node": true,
+		"es6": true,
 		"es2017": true
 	},
 	"extends": [
 		"eslint:recommended",
-		"plugin:node/recommended",
+		"plugin:import/recommended",
 		"prettier",
 		"plugin:jest/recommended"
 	],
 	"parserOptions": {
-		"ecmaVersion": 2018,
+		"ecmaVersion": 2020,
 		"ecmaFeatures": {
 			"jsx": true
 		}

@@ -1,9 +1,7 @@
-const { yamlParse, yamlDump } = require("yaml-cfn")
-const { readFileSync } = require("fs")
-const getFullPath = require("./getFullPath")
-const ResourceProperty = require("./ResourceProperty")
-
-module.exports = updateTemplate
+import { yamlParse, yamlDump } from "yaml-cfn"
+import { readFileSync } from "fs"
+import getFullPath from "./getFullPath.js"
+import ResourceProperty from "./ResourceProperty.js"
 
 /**
  * Update a template's properties with the packaged location
@@ -13,7 +11,7 @@ module.exports = updateTemplate
  * template depends on
  * @return {String} The updated template content
  */
-function updateTemplate(templatePath, { dependencies }) {
+export default function updateTemplate(templatePath, { dependencies }) {
   // Parse the template depending on its format
   const template = yamlParse(readFileSync(templatePath, "utf8"))
   for (const [

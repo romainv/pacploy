@@ -2,7 +2,7 @@
 // use in different situations
 
 // All possible statuses
-module.exports = [
+export default [
   "CREATE_COMPLETE",
   "CREATE_IN_PROGRESS",
   "CREATE_FAILED",
@@ -28,14 +28,14 @@ module.exports = [
 ]
 
 // Statuses indicating the stack is available
-module.exports.available = [
+export const available = [
   "CREATE_COMPLETE",
   "UPDATE_COMPLETE",
   "UPDATE_ROLLBACK_COMPLETE",
 ]
 
 // Statuses indicating the stack is new
-module.exports.isNew = [
+export const isNew = [
   "NEW",
   "REVIEW_IN_PROGRESS",
   "CREATE_FAILED",
@@ -43,17 +43,17 @@ module.exports.isNew = [
 ]
 
 // Statuses indicating the stack needs to be deleted before being modified
-module.exports.needsDelete = [
+export const needsDelete = [
   "ROLLBACK_COMPLETE",
   "ROLLBACK_FAILED",
   "DELETE_FAILED",
 ]
 
 // Statuses indicating deployment succeeded
-module.exports.deploySuccess = ["UPDATE_COMPLETE", "CREATE_COMPLETE"]
+export const deploySuccess = ["UPDATE_COMPLETE", "CREATE_COMPLETE"]
 
 // Statuses indicating deployment failed
-module.exports.deployFailed = [
+export const deployFailed = [
   "ROLLBACK_COMPLETE",
   "ROLLBACK_FAILED",
   "DELETE_FAILED",
@@ -63,7 +63,7 @@ module.exports.deployFailed = [
 ]
 
 // List of status for which a stack has no operation in progress
-module.exports.stable = [
+export const stable = [
   "NEW",
   "CREATE_FAILED",
   "CREATE_COMPLETE",
@@ -81,13 +81,13 @@ module.exports.stable = [
 ]
 
 // Indicate a stack was successfully created
-module.exports.createSuccess = ["CREATE_COMPLETE"]
+export const createSuccess = ["CREATE_COMPLETE"]
 
 // Indicate a stack failed to be created
-module.exports.createFailed = ["CREATE_FAILED", "FAILED"]
+export const createFailed = ["CREATE_FAILED", "FAILED"]
 
 // Indicate a stack was successfully deleted
-module.exports.deleteSuccess = ["DELETE_COMPLETE", "NEW"]
+export const deleteSuccess = ["DELETE_COMPLETE", "NEW"]
 
 // Indicate a stack failed to be deleted
-module.exports.deleteFailed = ["DELETE_FAILED"]
+export const deleteFailed = ["DELETE_FAILED"]

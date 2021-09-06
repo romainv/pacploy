@@ -1,6 +1,6 @@
-const { readFileSync } = require("fs")
-const withTracker = require("../../with-tracker")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import { readFileSync } from "fs"
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Validate a local template
@@ -11,7 +11,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * message otherwise
  */
 async function validate({ region, templatePath }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("validating template")
   let validation
   try {
@@ -30,4 +30,4 @@ async function validate({ region, templatePath }) {
   return validation
 }
 
-module.exports = withTracker()(validate)
+export default withTracker()(validate)

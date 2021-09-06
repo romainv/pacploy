@@ -1,7 +1,7 @@
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const displayEvents = require("./displayEvents")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import { stable as stableStatuses } from "../statuses.js"
+import displayEvents from "./displayEvents.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve the errors for a failed stack deployment, recursively for nested
@@ -22,7 +22,7 @@ async function getErrors({
   timestamp2,
   parentStackId,
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("retrieving errors")
   // Retrieve all relevant events
   let nextToken,
@@ -48,7 +48,7 @@ async function getErrors({
         // Event is about the parent stack
         StackId === (parentStackId || PhysicalResourceId) &&
         // Event describes the stack in a stable status
-        statuses.stable.includes(ResourceStatus) &&
+        stableStatuses.includes(ResourceStatus) &&
         // Event is older than our upper boundary
         Timestamp < timestamp1
     )
@@ -124,4 +124,4 @@ async function getErrors({
   return errors
 }
 
-module.exports = withTracker()(getErrors)
+export default withTracker()(getErrors)

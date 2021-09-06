@@ -1,4 +1,4 @@
-module.exports = {
+const command = {
   command: "zip [dir]",
   describe: "Creates a zip archive from a package",
   builder: (yargs) => {
@@ -26,3 +26,5 @@ module.exports = {
       })
   },
 }
+
+export default command

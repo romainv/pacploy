@@ -1,8 +1,8 @@
-const { existsSync, writeFileSync } = require("fs")
-const withTracker = require("../../with-tracker")
-const statuses = require("../statuses")
-const getStackOutputs = require("./getStackOutputs")
-const getStatus = require("../getStatus")
+import { existsSync, writeFileSync } from "fs"
+import withTracker from "../../with-tracker/index.js"
+import { available as availableStatuses } from "../statuses.js"
+import getStackOutputs from "./getStackOutputs.js"
+import getStatus from "../getStatus/index.js"
 
 /**
  * Download outputs of a deployed stack into a local file
@@ -21,7 +21,7 @@ async function sync({ region, stackName, syncPath, noOverride = false }) {
   }
   // Check if stack is available
   const status = await getStatus.call(this, { region, stackName, quiet: true })
-  if (!statuses.available.includes(status)) {
+  if (!availableStatuses.includes(status)) {
     // If stack is in a non available status
     this.tracker.interruptError(
       `Stack ${stackName} is not available (${status})`
@@ -37,4 +37,4 @@ async function sync({ region, stackName, syncPath, noOverride = false }) {
   return outputs
 }
 
-module.exports = withTracker()(sync)
+export default withTracker()(sync)

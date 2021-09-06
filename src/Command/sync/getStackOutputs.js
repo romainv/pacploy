@@ -1,5 +1,5 @@
-const withTracker = require("../../with-tracker")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve outputs of a deployed stack
@@ -9,7 +9,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * @return {Object} An object containing the stack information
  */
 async function getStackInfo({ region, stackName }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Retrieve stack outputs
   const {
     Stacks: [{ Outputs }],
@@ -21,4 +21,4 @@ async function getStackInfo({ region, stackName }) {
   )
 }
 
-module.exports = withTracker()(getStackInfo)
+export default withTracker()(getStackInfo)

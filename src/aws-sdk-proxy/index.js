@@ -1,13 +1,13 @@
-const AWS = require("aws-sdk")
-const getMethodNames = require("./getMethodNames")
-const throttle = require("./throttle")
-throttle.setRate(2, 1000) // Set a safe request limit for AWS apis
+import AWS from "aws-sdk"
+import getMethodNames from "./getMethodNames.js"
+import throttle, { setRate } from "./throttle.js"
+setRate(2, 1000) // Set a safe request limit for AWS apis
 
 /**
  * Proxify aws-sdk to throttle functions that send requests to avoid "Rate
  * exceed" errors. This also automatically promisify the methods
  */
-module.exports = new Proxy(AWS, {
+export default new Proxy(AWS, {
   // Proxify AWS services
   get: (AWS, serviceName) =>
     new Proxy(AWS[serviceName], {

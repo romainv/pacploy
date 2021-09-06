@@ -1,3 +1,5 @@
+import { jest } from "@jest/globals"
+
 jest.mock("aws-sdk", () => {
   class Request {
     constructor(foo) {
@@ -20,7 +22,7 @@ jest.mock("aws-sdk", () => {
   }
   return { CloudFormation }
 })
-const AWS = require("./index")
+import AWS from "./index"
 
 describe("aws-sdk-proxy", () => {
   test("is throttled", async () => {

@@ -1,6 +1,6 @@
-const AWS = require("../aws-sdk-proxy")
+import AWS from "../aws-sdk-proxy/index.js"
 
-module.exports = {
+const command = {
   command: "delete",
   describe: "Delete a stack",
   builder: (yargs) => {
@@ -23,3 +23,5 @@ module.exports = {
       })
   },
 }
+
+export default command

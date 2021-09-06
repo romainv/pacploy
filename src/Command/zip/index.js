@@ -1,9 +1,9 @@
-const { join } = require("path")
-const { existsSync, unlinkSync } = require("fs")
-const getFilesToZip = require("./getFilesToZip")
-const zipFiles = require("./zipFiles")
-const withTracker = require("../../with-tracker")
-const getArchiveBasename = require("./getArchiveBasename")
+import { join } from "path"
+import { existsSync, unlinkSync } from "fs"
+import getFilesToZip from "./getFilesToZip.js"
+import zipFiles from "./zipFiles.js"
+import withTracker from "../../with-tracker/index.js"
+import getArchiveBasename from "./getArchiveBasename.js"
 
 /**
  * Zip a list of files or a package so it can be deployed to S3
@@ -45,4 +45,4 @@ async function zip({
   return zipTo
 }
 
-module.exports = withTracker()(zip)
+export default withTracker()(zip)

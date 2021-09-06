@@ -1,5 +1,5 @@
-const withTracker = require("../../with-tracker")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve the change sets associated with a stack
@@ -18,7 +18,7 @@ async function getChangeSets({
   nextToken,
   changeSets = [],
 }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Retrieve the next page of change sets
   const { Summaries, NextToken } = await cf.listChangeSets({
     StackName: stackName,
@@ -37,4 +37,4 @@ async function getChangeSets({
     : changeSets
 }
 
-module.exports = withTracker()(getChangeSets)
+export default withTracker()(getChangeSets)

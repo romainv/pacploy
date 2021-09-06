@@ -1,15 +1,8 @@
-const withTracker = require("../../with-tracker")
-const emptyBucket = require("./emptyBucket")
-const getResourceName = require("./getResourceName")
-const supported = require("./supported")
-const {
-  S3,
-  DynamoDB,
-  CognitoIdentityServiceProvider,
-  CognitoIdentity,
-  Athena,
-  ECR,
-} = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import emptyBucket from "./emptyBucket.js"
+import getResourceName from "./getResourceName.js"
+import supported from "./supported.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Delete a resource given its ARN, with support for cleaning up that resource
@@ -21,15 +14,18 @@ const {
  * message, or false
  */
 async function deleteResource({ region, arn }) {
-  const s3 = new S3({ apiVersion: "2006-03-01", region })
-  const db = new DynamoDB({ apiVersion: "2012-08-10", region })
-  const userPool = new CognitoIdentityServiceProvider({
+  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
+  const db = new AWS.DynamoDB({ apiVersion: "2012-08-10", region })
+  const userPool = new AWS.CognitoIdentityServiceProvider({
     apiVersion: "2016-04-18",
     region,
   })
-  const identityPool = new CognitoIdentity({ apiVersion: "2014-06-30", region })
-  const athena = new Athena({ apiVersion: "2017-05-18", region })
-  const ecr = new ECR({ apiVersion: "2015-09-21", region })
+  const identityPool = new AWS.CognitoIdentity({
+    apiVersion: "2014-06-30",
+    region,
+  })
+  const athena = new AWS.Athena({ apiVersion: "2017-05-18", region })
+  const ecr = new AWS.ECR({ apiVersion: "2015-09-21", region })
   // Retrieve resource type and name
   const resourceType = arn.split(":")[2]
   let resourceName = getResourceName(arn)
@@ -124,4 +120,4 @@ async function deleteResource({ region, arn }) {
   }
 }
 
-module.exports = withTracker()(deleteResource)
+export default withTracker()(deleteResource)

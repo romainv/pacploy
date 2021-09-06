@@ -26,13 +26,14 @@
     "CLI",
     "node"
   ],
-  "main": "src/index.js",
+  "exports": "./index.js",
+  "type": "module",
   "bin": {
     "pacploy": "pacploy"
   },
   "scripts": {
     "test": "jest",
-    "lint": "eslint --cache --fix && prettier --write src/**/*.js src/*.js",
+    "lint": "eslint --cache --fix $(git ls-files '*.js') && prettier --write $(git ls-files '*.js')",
     "upgrade": "multi-updates && npm install"
   },
   "dependencies": {
@@ -51,8 +52,12 @@
     "yargs": "^17.1.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.15.5",
+    "@babel/preset-env": "^7.15.4",
+    "babel-jest": "^27.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-jest": "^24.4.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -61,7 +66,7 @@
     "prettier": "^2.3.2"
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
   "prettier": {
     "semi": false

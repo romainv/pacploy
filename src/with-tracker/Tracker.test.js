@@ -1,3 +1,5 @@
+import { jest } from "@jest/globals"
+
 // Mock ProgressBar
 jest.mock(
   "./ProgressBar",
@@ -13,7 +15,7 @@ jest.mock(
       }
     }
 )
-const Tracker = require("./Tracker")
+import Tracker from "./Tracker"
 
 describe("Tracker", () => {
   test("initializes properly", () => {
@@ -42,7 +44,7 @@ describe("Tracker", () => {
   test("tracks internal changes", () => {
     let changes = 0
     const tracker = new Tracker({
-      update: function (path, current, previous) {
+      update: function (path) {
         changes++
         if (path === "tracker.total") this.tracker.tick()
       },

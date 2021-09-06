@@ -1,7 +1,7 @@
-const { yamlParse } = require("yaml-cfn")
-const withTracker = require("../../with-tracker")
-const ResourceProperty = require("./ResourceProperty")
-const { S3 } = require("../../aws-sdk-proxy")
+import { yamlParse } from "yaml-cfn"
+import withTracker from "../../with-tracker/index.js"
+import ResourceProperty from "./ResourceProperty.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Recursively parse a remote template's resource properties and execute a
@@ -12,7 +12,7 @@ const { S3 } = require("../../aws-sdk-proxy")
  * @param {Function} params.fn The synchronous function to execute (see parseTemplate)
  */
 async function parseRemoteTemplate({ region, templateBody, fn }) {
-  const s3 = new S3({ apiVersion: "2006-03-01", region })
+  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
   // Parse the template depending on its format
   const template = yamlParse(templateBody)
   // Recursively package the properties of the template resources
@@ -58,4 +58,4 @@ async function parseRemoteTemplate({ region, templateBody, fn }) {
   )
 }
 
-module.exports = withTracker()(parseRemoteTemplate)
+export default withTracker()(parseRemoteTemplate)

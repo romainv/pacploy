@@ -1,5 +1,5 @@
-const withTracker = require("../../with-tracker")
-const { CloudFormation } = require("../../aws-sdk-proxy")
+import withTracker from "../../with-tracker/index.js"
+import AWS from "../../aws-sdk-proxy/index.js"
 
 /**
  * Retrieve the status of a stack
@@ -9,7 +9,7 @@ const { CloudFormation } = require("../../aws-sdk-proxy")
  * @param {Boolean} [params.quiet=true] Whether to display stack status
  */
 async function getStatus({ region, stackName, quiet = true }) {
-  const cf = new CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   let status
   // Retrieve basic stack information, separating serialized values
   this.tracker.setStatus("retrieving stack status")
@@ -28,4 +28,4 @@ async function getStatus({ region, stackName, quiet = true }) {
   return status
 }
 
-module.exports = withTracker()(getStatus)
+export default withTracker()(getStatus)

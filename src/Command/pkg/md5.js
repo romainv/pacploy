@@ -1,7 +1,5 @@
-const { createHash } = require("crypto")
-const { existsSync, createReadStream } = require("fs")
-
-module.exports = md5
+import { createHash } from "crypto"
+import { existsSync, createReadStream } from "fs"
 
 /**
  * Calculate the md5 hash of a content
@@ -9,7 +7,7 @@ module.exports = md5
  * can also be the path to a file whose content we want to get a hash for
  * @return {String} The md5 hash in hexadecimal encoding
  */
-async function md5(content) {
+export default async function md5(content) {
   const hash = createHash("md5") // Instanciate a hash
   if (typeof content === "string" && existsSync(content))
     // If argument provided is the path to a file

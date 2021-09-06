@@ -1,8 +1,8 @@
-const withTracker = require("../../with-tracker")
-const { copyFile, existsSync } = require("fs")
-const { extname, join } = require("path")
-const md5 = require("./md5")
-const tmp = require("tmp")
+import withTracker from "../../with-tracker/index.js"
+import { copyFile, existsSync } from "fs"
+import { extname, join } from "path"
+import md5 from "./md5.js"
+import tmp from "tmp"
 
 /**
  * Package a local file to a temp folder so it can be inserted inline
@@ -33,4 +33,4 @@ async function packageFileInline(file, { forceUpload = false }) {
   }
 }
 
-module.exports = withTracker()(packageFileInline)
+export default withTracker()(packageFileInline)
