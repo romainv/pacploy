@@ -35,7 +35,7 @@ async function del({ region, stackName, forceDelete }) {
       Stacks: [{ StackId: stackId }],
     } = await cf.describeStacks({ StackName: stackName }))
     // Attempt to delete the stack if it exists
-    if (await _del.call(this, { stackId })) {
+    if (await _del.call(this, { region, stackId })) {
       success1 = true
       this.tracker.interruptSuccess(`Deleted stack ${stackName}`)
     }
