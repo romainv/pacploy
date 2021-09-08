@@ -29,7 +29,7 @@
   "exports": "./index.js",
   "type": "module",
   "bin": {
-    "pacploy": "pacploy"
+    "pacploy": "./pacploy.js"
   },
   "scripts": {
     "test": "jest",
