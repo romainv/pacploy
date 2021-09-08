@@ -122,6 +122,8 @@ describe("withTracker", () => {
     expect(tracker.remainingTicks).toEqual(
       toMultiply.reduce((total) => total + 1, 0)
     )
+    // Stop the tracker
+    tracker.complete()
   })
 
   test("enables autoComplete", () => {
