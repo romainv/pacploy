@@ -86,7 +86,8 @@ export default class ProgressBar extends BaseProgressBar {
         2 // Additional buffer to ensure there is no line wrap
     )
     // Start the spinner if needed
-    if (!this.spinner) this.startSpinner()
+    if ((!this.spinner || this.spinner._destroyed) && this.curr < this.total)
+      this.startSpinner()
     // Use the parent tick
     return super.tick(len, this._tokens)
   }

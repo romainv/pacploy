@@ -3,7 +3,7 @@ import AWS from "../aws-sdk-proxy/index.js"
 const command = {
   command: "cleanup",
   describe:
-    "Delete retained resources created by a stack but not associated with it anymore",
+    "Delete retained resources and artifacts created by a stack but not associated with it anymore",
   builder: (yargs) => {
     yargs
       .option("stack-name", {
@@ -13,6 +13,7 @@ const command = {
       })
       .option("deploy-bucket", {
         type: "string",
+        alias: "s3-bucket",
         describe: "A S3 bucket to store the template resources for deployment",
         default: "",
       })
@@ -26,12 +27,6 @@ const command = {
         type: "boolean",
         describe: "If set, will not ask for confirmation delete",
         default: Boolean(process.argv.indexOf("--force-delete") > -1),
-      })
-      .option("prune-deploy-bucket", {
-        type: "boolean",
-        describe:
-          "If set, will delete inactive artifacts from deployment bucket",
-        default: Boolean(process.argv.indexOf("--prune-deploy-bucket") > -1),
       })
   },
 }

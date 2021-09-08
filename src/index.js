@@ -7,35 +7,31 @@ import { readdir } from "fs"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const aliases = { package: "pkg", delete: "del" }
+const aliases = { package: "pkg", delete: "del", status: "getStatus" }
 
 /**
  * Execute one or several commands with the specified configuration
- * @param {Array|Object} confs The configuration(s) for the command to execute
- * @param {Array} cliArgs The arguments passed by the CLI. If using in node
+ * @param {Array|Object} [confs] The configuration(s) for the command to execute
+ * @param {Array} [cliArgs] The arguments passed by the CLI. If using in node
  * directly, pass the command to execute as follow: ['command']
  */
-export default async function pacploy(confs, cliArgs) {
-  if (!confs)
-    // If no conf was passed
-    confs = []
-  else if (!Array.isArray(confs))
-    // If conf was not provided as an array
-    confs = [confs] // Convert to array
+export default async function pacploy(confs = [], cliArgs = []) {
+  if (!Array.isArray(confs)) confs = [confs] // Convert to array
   if (cliArgs.includes("--stack-name"))
-    // If a --stack-name is specified, filter the configuration to that which
-    // matches the stack name
+    // If a --stack-name is specified, filter the configuration matching it
     confs = confs.filter(
-      ({ stackName }) =>
+      ({ stackName } = {}) =>
         stackName === cliArgs[cliArgs.indexOf("--stack-name") + 1]
     )
+  // Keep at least an empty conf object to execute the below loop
+  if (confs.length === 0) confs.push({})
   let results = [] // Will accumulate command results
   for (const curConf of confs) {
-    // Extract special parameters used when running multiple commands
-    // Replace any parameters passed as functions
-    for (const param of Object.keys(curConf))
-      if (typeof curConf[param] === "function")
-        curConf[param] = curConf[param](results)
+    // Replace any parameters passed as functions by their value
+    for (const param of Object.keys(curConf).filter(
+      (param) => typeof curConf[param] === "function"
+    ))
+      curConf[param] = curConf[param](results)
     // Define and retrieve CLI arguments and commands
     let args = yargs(cliArgs).config(curConf) // Provide user conf from the default location
     const commandDefs = await getCommands(join(__dirname, "commands"))
@@ -52,11 +48,8 @@ export default async function pacploy(confs, cliArgs) {
     // Execute the command
     const res = await new Command()[commandName](args)
     if (!res && process.exitCode === 1) return
-    if (typeof res === "string")
-      // Print result if relevant
-      console.log(res)
-    // Accumulate results
-    results = results.concat(res)
+    if (typeof res === "string") console.log(res) // Print result if relevant
+    results = results.concat(res) // Accumulate results
   }
 }
 

@@ -2,8 +2,7 @@ import AWS from "../aws-sdk-proxy/index.js"
 
 const command = {
   command: "sync",
-  describe:
-    "Download stack information, including nested stacks and other resources",
+  describe: "Download stack outputs in JSON format",
   builder: (yargs) => {
     yargs
       .option("stack-name", {
@@ -20,7 +19,7 @@ const command = {
       .option("sync-path", {
         type: "string",
         describe: "Path to where stack info should be saved",
-        alias: "save-to",
+        alias: "to",
         demandOption: true,
       })
       .option("no-override", {

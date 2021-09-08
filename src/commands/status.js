@@ -20,7 +20,7 @@ const command = {
         describe: "Don't display the stack status",
         alias: "q",
         type: "boolean",
-        default: Boolean(process.argv.indexOf("--quiet") > -1),
+        default: true,
       })
   },
 }

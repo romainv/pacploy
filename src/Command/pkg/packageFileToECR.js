@@ -8,9 +8,8 @@ import isDir from "./isDir.js"
 import getArchiveBasename from "../zip/getArchiveBasename.js"
 import { URL } from "url"
 import AWS from "../../aws-sdk-proxy/index.js"
-import { createRequire } from "module"
+import { readFileSync, existsSync } from "fs"
 
-const require = createRequire(import.meta.url)
 const docker = new Docker()
 
 /**
@@ -28,12 +27,15 @@ async function packageFileToECR(
   { region, deployEcr, forceUpload = false }
 ) {
   // Retrieve parameters, if any
-  const packagePath = await findUp("package.json", {
+  // Resolve root directory relative to the config file
+  const packagePath = await findUp([".pacployrc", "package.json"], {
     // Use file.path directly if it is a directory, otherwise dirname causes to
     // start searching from one level up
     cwd: isDir(file.path) ? file.path : dirname(file.path),
   })
-  const { dockerBuild = {} } = packagePath ? require(packagePath) : {}
+  const { dockerBuild = {} } = existsSync(packagePath)
+    ? JSON.parse(readFileSync(packagePath, "utf-8"))
+    : {}
   // Generate a base image tag to identify it consistently across runs
   // We use a tag as a way to manage multiple images (not just multiple
   // versions of the same image) within a single Docker repository

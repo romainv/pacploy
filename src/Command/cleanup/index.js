@@ -13,33 +13,24 @@ import emptyBucket from "./emptyBucket.js"
  * @param {String} params.region The stack's region
  * @param {String} params.stackName The name of the deployed stack
  * @param {String} [params.deployBucket] The name of the deployment bucket
- * @param {Boolean} [params.pruneDeployBucket=true] Whether the delete
- * inactive artifacts from the deployment bucket
  * @param {Boolean} [params.forceDelete=false] If true, will ask for
  * confirmation before deleting the stack and associated resources
  * @return {String} The stack status after attempting to delete it
  */
-async function cleanup({
-  region,
-  stackName,
-  forceDelete,
-  deployBucket,
-  pruneDeployBucket = true,
-}) {
+async function cleanup({ region, stackName, forceDelete, deployBucket }) {
   // Collect live stack resources and active packaged files if stack exists
   let liveResources = []
   let packagedFiles = []
   if ((await getStatus.call(this, { region, stackName })) !== "NEW") {
     this.tracker.setStatus("retrieving stack resources")
     liveResources = await listStackResources.call(this, { region, stackName })
-    if (pruneDeployBucket && deployBucket) {
+    if (deployBucket) {
       this.tracker.setStatus("retrieving packaged files")
       packagedFiles = await listPackagedFiles.call(this, { region, stackName })
     }
   }
-  // Empty the deployment bucket if specified
+  // Empty the deployment bucket
   if (
-    pruneDeployBucket &&
     deployBucket &&
     (forceDelete ||
       (await this.tracker.confirm(

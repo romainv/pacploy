@@ -1,6 +1,6 @@
 const command = {
   command: "zip [dir]",
-  describe: "Creates a zip archive from a package",
+  describe: "Create a zip archive of a package",
   builder: (yargs) => {
     yargs
       .positional("dir", {
@@ -11,12 +11,14 @@ const command = {
       .option("bundle-dir", {
         type: "string",
         describe: "The parent folder under which to add bundled dependencies",
+        default: "node_modules",
       })
       .option("zip-to", {
+        alias: "to",
         type: "string",
         describe: [
           "The destination path of the zip file.",
-          "If omitted, will generated one from the package dir",
+          "If omitted, will generate a name based on the package dir",
         ].join(" "),
       })
       .option("format", {
