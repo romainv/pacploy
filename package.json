@@ -1,6 +1,6 @@
 {
   "name": "pacploy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Package and deploy CloudFormation templates with a simple CLI",
   "author": "Romain Vermeulen",
   "license": "MIT",
@@ -67,6 +67,14 @@
     "multi-updates": "^0.1.2",
     "prettier": "^2.3.2"
   },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "node_modules",
+    "*.js",
+    "src/*.js",
+    "src/**/*.js"
+  ],
   "engines": {
     "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
   },
