@@ -11,34 +11,34 @@ import AWS from "../../aws-sdk-proxy/index.js"
  */
 async function emptyBucket({ region, bucket, exclude = [] }) {
   const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
-  for (const objectType of ["Versions", "DeleteMarkers"]) {
-    // Remove object versions first, then delete markers
-    let nextToken
-    do {
-      // Retrieve object versions
-      let objects
-      ;({
-        [objectType]: objects,
-        [objectType === "Versions" ? "NextVersionIdMarker" : "NextKeyMarker"]:
-          nextToken,
-      } = await s3.listObjectVersions({
+  // Remove object versions first, then delete markers
+  let nextVersionIdMarker, nextKeyMarker
+  do {
+    // Retrieve object versions
+    let versionObjects, deleteMarkerObjects
+    ;({
+      Versions: versionObjects,
+      DeleteMarkers: deleteMarkerObjects,
+      NextVersionIdMarker: nextVersionIdMarker,
+      NextKeyMarker: nextKeyMarker,
+    } = await s3.listObjectVersions({
+      Bucket: bucket,
+      MaxKeys: 1000, // Maximum objects to return on each page
+      VersionIdMarker: nextVersionIdMarker,
+      KeyMarker: nextKeyMarker,
+    }))
+    // Filter out keys that were excluded and format as expected
+    const objects = versionObjects
+      .concat(deleteMarkerObjects)
+      .map(({ Key, VersionId }) => ({ Key, VersionId }))
+      .filter(({ Key }) => !exclude.includes(Key))
+    if (objects.length > 0) {
+      await s3.deleteObjects({
         Bucket: bucket,
-        MaxKeys: 1000, // Maximum objects to return on each page
-        [objectType === "Versions" ? "VersionIdMarker" : "KeyMarker"]:
-          nextToken,
-      }))
-      // Filter out keys that were excluded and format as expected
-      objects = objects
-        .map(({ Key, VersionId }) => ({ Key, VersionId }))
-        .filter(({ Key }) => !exclude.includes(Key))
-      if (objects.length > 0) {
-        await s3.deleteObjects({
-          Bucket: bucket,
-          Delete: { Objects: objects },
-        })
-      }
-    } while (nextToken)
-  }
+        Delete: { Objects: objects },
+      })
+    }
+  } while (nextVersionIdMarker || nextKeyMarker)
 }
 
 export default withTracker()(emptyBucket)
