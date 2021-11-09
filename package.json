@@ -1,6 +1,6 @@
 {
   "name": "pacploy",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Package and deploy CloudFormation templates with a simple CLI",
   "author": "Romain Vermeulen",
   "license": "MIT",
@@ -26,7 +26,7 @@
     "CLI",
     "node"
   ],
-  "exports": "./index.js",
+  "exports": "./src/index.js",
   "type": "module",
   "bin": {
     "pacploy": "./pacploy.js"
@@ -40,32 +40,31 @@
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "archiver": "^5.3.0",
-    "aws-sdk": "^2.983.0",
-    "dockerode": "^3.3.0",
+    "aws-sdk": "^2.1024.0",
+    "dockerode": "^3.3.1",
     "enquirer": "^2.3.6",
-    "find-up": "^6.0.0",
-    "glob": "^7.1.7",
+    "find-up": "^6.2.0",
+    "glob": "^7.2.0",
     "locate-path": "^7.0.0",
     "on-change": "^4.0.0",
     "progress": "^2.0.3",
     "tmp": "^0.2.1",
     "yaml-cfn": "^0.3.1",
-    "yargs": "^17.1.1"
+    "yargs": "^17.2.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.4",
-    "babel-jest": "^27.1.0",
-    "doctoc": "^2.0.1",
-    "eslint": "^7.32.0",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "babel-jest": "^27.3.1",
+    "eslint": "^8.2.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-import": "^2.24.2",
-    "eslint-plugin-jest": "^24.4.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-jest": "^25.2.4",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "27.1.0",
+    "jest": "27.3.1",
     "multi-updates": "^0.1.2",
-    "prettier": "^2.3.2"
+    "prettier": "^2.4.1"
   },
   "files": [
     "LICENSE",
