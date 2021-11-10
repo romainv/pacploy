@@ -3,6 +3,7 @@ import errors from "../errors/index.js"
 import {
   deploySuccess as deploySuccessStatuses,
   deployFailed as deployFailedStatuses,
+  canBeModified,
 } from "../statuses.js"
 import prepare from "./prepare.js"
 import validate from "./validate.js"
@@ -54,6 +55,11 @@ async function deploy({
     stackName,
     forceDelete,
   })
+  if (!canBeModified.includes(stackStatus)) {
+    // If stack is not in a status that can be changed, abort the deployment
+    process.exitCode = 1
+    return false
+  }
   // Package and upload template to S3
   const templateURL = await pkg.call(this, {
     region,

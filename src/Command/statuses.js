@@ -42,6 +42,9 @@ export const isNew = [
   "ROLLBACK_COMPLETE",
 ]
 
+// Statuses indicating the stack can be created or updated
+export const canBeModified = [...available, ...isNew]
+
 // Statuses indicating the stack needs to be deleted before being modified
 export const needsDelete = [
   "ROLLBACK_COMPLETE",
