@@ -13,6 +13,7 @@ import createChangeSet from "../createChangeSet/index.js"
 import waitForStatus from "../waitForStatus/index.js"
 import getStackOutputs from "../sync/getStackOutputs.js"
 import AWS from "../../aws-sdk-proxy/index.js"
+import cleanup from "../cleanup/index.js"
 
 /**
  * Check the status of a stack
@@ -98,14 +99,14 @@ async function deploy({
       return false
     }
   }
+  // Cleanup retained resources
+  await cleanup.call(this, { region, stackName, forceDelete, deployBucket })
   // Sync deployed infra if needed
-  if (syncPath) {
-    const outputs = await sync.call(this, { region, stackName, syncPath })
-    return outputs
-  } else {
-    const outputs = await getStackOutputs.call(this, { region, stackName })
-    return outputs
-  }
+  const outputs = syncPath
+    ? await sync.call(this, { region, stackName, syncPath })
+    : await getStackOutputs.call(this, { region, stackName })
+  // Pass along stack outputs
+  return outputs
 }
 
 export default withTracker()(deploy)
