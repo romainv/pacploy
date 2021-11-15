@@ -89,8 +89,9 @@ Options:
   --stack-name                  The stack name or stack id [string] [required]
   --region                      The region in which the stack is deployed
                                 [string] [required]
-  --force-delete                If set, will delete the existing stack before
-                                deploying [boolean] [default:false]
+  --force-delete                If set, will not ask for confirmation to delete
+                                the stack and associated resources if needed
+                                [boolean] [default:false]
   --force-upload                If set, will upload local artifacts even if
                                 they are up-to-date [boolean] [default:false]
   --deploy-bucket, --s3-bucket  The name of a S3 bucket to upload the template

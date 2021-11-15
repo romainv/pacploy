@@ -13,7 +13,7 @@ import waitForStatus from "../waitForStatus/index.js"
  * @param {String} params.region The stack's region
  * @param {String} [params.stackName] The name of the deployed stack
  * @param {Boolean} [params.forceDelete=false] If true, will not ask for
- * confirmation to delete the stack if this is needed before deploying it
+ * confirmation to delete the stack and associated resources if needed
  * @return {String} The prepared stack status
  */
 async function prepare({ region, stackName, forceDelete = false }) {

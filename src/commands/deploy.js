@@ -23,7 +23,8 @@ const command = {
       })
       .option("force-delete", {
         type: "boolean",
-        describe: "If set, will bypass any resource deletion confirmation",
+        describe:
+          "If set, will not ask for confirmation to delete the stack and associated resources if needed",
         default: Boolean(process.argv.indexOf("--force-delete") > -1),
       })
       .option("no-prune", {

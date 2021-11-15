@@ -25,8 +25,8 @@ import cleanup from "../cleanup/index.js"
  * @param {String} params.templatePath Path to the source template
  * @param {Object} [params.stackParameters] The stack parameters
  * @param {Object} [params.stackTags] The tags to apply to the stack
- * @param {Boolean} [params.forceDelete=false] If true, will delete the
- * existing stack before deploying the new one
+ * @param {Boolean} [params.forceDelete=false] If true, will not ask for
+ * confirmation to delete the stack and associated resources if needed
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * resources even if they were not updated since last upload
  * @param {Boolean} [params.noPrune=false] If true, will not prune unused
