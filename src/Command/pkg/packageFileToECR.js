@@ -44,6 +44,7 @@ async function packageFileToECR(
   if (isDir(file.path))
     // If file points to a directory, create a tarball from it
     file.path = await zip.call(this, {
+      zipTo: `${tmp.tmpNameSync()}.tar`,
       dir: file.path,
       format: "tar",
     })

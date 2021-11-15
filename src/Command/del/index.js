@@ -13,7 +13,7 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {Object} params The function parameters
  * @param {String} params.region The stack's region
  * @param {String} params.stackName The name of the deployed stack
- * @param {Boolean} [params.forceDelete=false] If true, will ask for
+ * @param {Boolean} [params.forceDelete=false] If true, will not ask for
  * confirmation before deleting the stack and associated resources
  * @return {String} The stack status after attempting to delete it
  */

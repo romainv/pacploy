@@ -3,6 +3,7 @@ import withTracker from "../../with-tracker/index.js"
 import { available as availableStatuses } from "../statuses.js"
 import getStackOutputs from "./getStackOutputs.js"
 import getStatus from "../getStatus/index.js"
+import md5 from "../pkg/md5.js"
 
 /**
  * Download outputs of a deployed stack into a local file
@@ -16,7 +17,7 @@ import getStatus from "../getStatus/index.js"
 async function sync({ region, stackName, syncPath, noOverride = false }) {
   if (noOverride && existsSync(syncPath)) {
     // If file already exists and shouldn't be overriden
-    this.tracker.interruptInfo(`Stack info already exists at ${syncPath}`)
+    this.tracker.interruptInfo(`Stack outputs already exists at ${syncPath}`)
     return
   }
   // Check if stack is available
@@ -32,8 +33,13 @@ async function sync({ region, stackName, syncPath, noOverride = false }) {
   this.tracker.setStatus("syncing outputs")
   const outputs = await getStackOutputs.call(this, { region, stackName })
   // Save stack outputs locally
+  const hashBefore = existsSync(syncPath) && (await md5(syncPath))
   writeFileSync(syncPath, JSON.stringify(outputs), "utf8")
-  this.tracker.interruptInfo(`Stack outputs saved at ${syncPath}`)
+  const hashAfter = await md5(syncPath)
+  const isUpdated = hashAfter !== hashBefore
+  if (isUpdated)
+    this.tracker.interruptSuccess(`Stack outputs saved at ${syncPath}`)
+  else this.tracker.interruptInfo(`Stack outputs already up-to-date`)
   return outputs
 }
 

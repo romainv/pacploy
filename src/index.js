@@ -4,6 +4,7 @@ import { dirname, join } from "path"
 import addRootStackTag from "./middlewares/addRootStackTag.js"
 import { fileURLToPath } from "url"
 import { readdir } from "fs"
+import { tracker } from "./with-tracker/index.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -17,6 +18,9 @@ const aliases = { package: "pkg", delete: "del", status: "getStatus" }
  */
 export default async function pacploy(confs = [], cliArgs = []) {
   if (!Array.isArray(confs)) confs = [confs] // Convert to array
+  if (cliArgs.includes("--force-delete"))
+    // Warn user that we'll not ask for confirmation before deleting
+    tracker.interruptInfo("force-delete is set")
   if (cliArgs.includes("--stack-name"))
     // If a --stack-name is specified, filter the configuration matching it
     confs = confs.filter(
@@ -45,6 +49,10 @@ export default async function pacploy(confs = [], cliArgs = []) {
     args = args.middleware(addRootStackTag).demandCommand().argv
     // Retrieve command name, decoding aliases
     let commandName = aliases[args._[0]] || args._[0]
+    const forStack = args["stackName"] ? ` stack ${args["stackName"]}` : ""
+    if (commandDefs.length > 1)
+      // If several commands were chained, display the current one
+      tracker.interrupt(`> ${commandName}${forStack}`)
     // Execute the command
     const res = await new Command()[commandName](args)
     if (!res && process.exitCode === 1) return

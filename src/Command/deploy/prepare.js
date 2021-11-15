@@ -12,12 +12,11 @@ import waitForStatus from "../waitForStatus/index.js"
  * @param {Object} params Function parameters
  * @param {String} params.region The stack's region
  * @param {String} [params.stackName] The name of the deployed stack
- * @param {Boolean} [params.forceDelete=false] If true, will delete the
- * existing stack before deploying the new one
+ * @param {Boolean} [params.forceDelete=false] If true, will not ask for
+ * confirmation to delete the stack if this is needed before deploying it
  * @return {String} The prepared stack status
  */
 async function prepare({ region, stackName, forceDelete = false }) {
-  if (forceDelete) this.tracker.interruptInfo("force-delete is set")
   // Check current stack status
   let status = await getStatus.call(this, { region, stackName })
   if (!stableStatuses.includes(status))
@@ -27,12 +26,12 @@ async function prepare({ region, stackName, forceDelete = false }) {
       arn: stackName,
       success: stableStatuses,
     })
-  if (forceDelete || needsDeleteStatuses.includes(status)) {
+  if (needsDeleteStatuses.includes(status)) {
     if (!forceDelete)
       // Information on the delete prompt
       this.tracker.interruptWarn(
         [
-          `Stack ${stackName} is in status ${status}`,
+          `Stack is in status ${status}`,
           `and needs to be deleted before attempting to create it again`,
         ].join(" ")
       )

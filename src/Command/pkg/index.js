@@ -49,6 +49,7 @@ async function pkg({
       deployBucket,
       deployEcr,
       forceUpload,
+      stackTags,
     })
     if (Object.keys(packagedFiles).length === 0)
       throw new Error(
@@ -56,14 +57,20 @@ async function pkg({
           Object.keys(toPackage).length
         } files, but none were uploaded`
       )
-    else
-      this.tracker.interruptInfo(
-        `Packaged ${Object.keys(packagedFiles).length} files (${
-          Object.values(packagedFiles).filter(
-            ({ status }) => status === "exists"
-          ).length
-        } unchanged)`
-      )
+    else {
+      const newCount = Object.values(packagedFiles).filter(
+        ({ status }) => status !== "exists"
+      ).length
+      const totalCount = Object.keys(packagedFiles).length
+      if (newCount > 0)
+        this.tracker.interruptSuccess(
+          `${newCount} new files packaged (${totalCount} in total)`
+        )
+      else
+        this.tracker.interruptInfo(
+          `No new files to package (${totalCount} in total)`
+        )
+    }
     // Point to the packaged template, if anything was updated
     packagedTemplatePath = packagedFiles[templatePath].location
   }

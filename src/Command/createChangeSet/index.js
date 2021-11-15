@@ -89,7 +89,7 @@ async function createChangeSet({
       res.includes("The submitted information didn't contain changes") ||
       res.includes("No updates are to be performed.")
     ) {
-      this.tracker.interruptInfo(`Stack ${stackName} is up-to-date`)
+      this.tracker.interruptInfo(`Stack is already up-to-date`)
       hasChanges = false
       // Failure is expected if there are no changes
     } else {

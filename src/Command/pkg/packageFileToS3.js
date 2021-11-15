@@ -18,11 +18,13 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * current file depends on
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * file even if it was not updated since last upload
+ * @param {Object} [params.stackTags] The stack tags to be applied to packaged
+ * files as well
  * @return {Object} The S3 file URI and upload status
  */
 async function packageFileToS3(
   file,
-  { region, deployBucket, dependencies, forceUpload = false }
+  { region, deployBucket, dependencies, forceUpload = false, stackTags = {} }
 ) {
   const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
   // Retrieve content to upload and its md5 hash
@@ -41,6 +43,7 @@ async function packageFileToS3(
   } else if (isDir(file.path))
     // If current file is a directory, zip it and point to the zip instead
     file.path = await zip.call(this, {
+      zipTo: `${tmp.tmpNameSync()}.zip`,
       dir: file.path,
       bundleDir:
         file.resourceType === "AWS::Lambda::LayerVersion"
@@ -74,6 +77,17 @@ async function packageFileToS3(
       )
     })
     status = !exists ? "updated" : "forced"
+    // Apply tags to file
+    await s3.putObjectTagging({
+      Bucket: deployBucket,
+      Key: key,
+      Tagging: {
+        TagSet: Object.entries(stackTags).map(([Key, Value]) => ({
+          Key,
+          Value,
+        })),
+      },
+    })
   }
   // Return the S3 location
   const regionPrefix = region === "us-east-1" ? "s3" : `s3-${region}`

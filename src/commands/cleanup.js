@@ -28,6 +28,18 @@ const command = {
         describe: "If set, will not ask for confirmation delete",
         default: Boolean(process.argv.indexOf("--force-delete") > -1),
       })
+      .option("no-prune", {
+        type: "boolean",
+        describe:
+          "If set, will not prune unused packaged files associated with supplied stack from deployment bucket",
+        default: Boolean(process.argv.indexOf("--no-prune") > -1),
+      })
+      .option("no-retained", {
+        type: "boolean",
+        describe:
+          "If set, will not delete retained resources assiciated with the supplied stack",
+        default: Boolean(process.argv.indexOf("--no-retained") > -1),
+      })
   },
 }
 

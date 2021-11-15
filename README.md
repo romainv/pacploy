@@ -99,6 +99,12 @@ Options:
                                 deploy docker images [string]
   --sync-path                   Path to where stack outputs should be saved
                                 [string]
+  --no-prune                    If set, will not prune unused packaged files
+                                associated with supplied stack from deployment
+                                bucket [boolean] [default: false]
+  --cleanup                     If set, will delete retained resources
+                                assiciated with the supplied stack [boolean]
+                                [default: false]
 ```
 
 This command bundles several operations to go from a local template to a live
@@ -110,8 +116,9 @@ infrastructure in a single command:
 - if `--sync-path` is specified, [`sync`](#download-stack-outputs) the stack's
   outputs locally
 - if the stack is in a non-deployable [`status`](#retrieve-stack-status),
-  propose to [`delete`](#delete-a-stack) it and
-  [`cleanup`](#cleanup-retained-resources)
+  propose to [`delete`](#delete-a-stack) it
+- [`cleanup`](#cleanup-retained-resources) deployment bucket (by default unless
+  `--no-prune` is passed) and retained resources (if `--cleanup` is set)
 
 Check the [Configuration](#Configuration) section for additional options
 available only through config files.
@@ -145,8 +152,8 @@ $ pacploy delete --help
 Options:
   --stack-name    The stack name or stack id [string] [required]
   --region        The region in which the stack is deployed [string] [required]
-  --force-delete  If set, will not ask for confirmation to delete
-                  [boolean] [default: false]
+  --force-delete  If set, will not ask for confirmation before deleting the
+                  stack and associated resources [boolean] [default: false]
 ```
 
 Delete a stack, and optionally retained resources (see the
@@ -201,6 +208,12 @@ Options:
                                 resources [string]
   --force-delete                If set, will not ask for confirmation to delete
                                 [boolean] [default: false]
+  --no-prune                    If set, will not prune unused packaged files
+                                associated with supplied stack from deployment
+                                bucket [boolean] [default: false]
+  --cleanup                     If set, will delete retained resources
+                                assiciated with the supplied stack [boolean]
+                                [default: false]
 ```
 
 Certain resources are not deleted with the stack, such as S3 buckets which are
@@ -208,9 +221,10 @@ often [marked to be retained](https://aws.amazon.com/premiumsupport/knowledge-ce
 as they need to be emptied first. This command automates the deletion of such
 resources.  
 It also purges unused artifacts from the S3 bucket used to
-[`package`](#package-local-dependencies) them. This can reduce unnecessary
-storage costs as the bucket grows larger with each artifact update (the
-[`package`](#package-local-dependencies) command is able to check if an
+[`package`](#package-local-dependencies) the specified stack (artifacts not
+associated with the specified stack won't be removed). This can reduce
+unnecessary storage costs as the bucket grows larger with each artifact update
+(the [`package`](#package-local-dependencies) command is able to check if an
 artifact already exists, but won't remove previous ones after updates).  
 For a list of supported resources, check
 [supported.js](./src/Command/cleanup/supported.js).

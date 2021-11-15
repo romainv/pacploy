@@ -10,6 +10,8 @@ import packageFile from "./packageFile.js"
  * @param {String} [params.deployEcr] An ECR repo URI to package docker images
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * resources even if they were not updated since last upload
+ * @param {Object} [params.stackTags] The stack tags to be applied to packaged
+ * files as well
  * @return {Object} The updated set of files with packaged location
  */
 async function packageFiles({
@@ -18,6 +20,7 @@ async function packageFiles({
   deployBucket,
   deployEcr,
   forceUpload = false,
+  stackTags = {},
 }) {
   // Make sure an S3 bucket or an ECR repo are provided if needed
   if (
@@ -66,6 +69,7 @@ async function packageFiles({
               deployBucket,
               deployEcr,
               forceUpload,
+              stackTags,
               // At this stage, toPackage has the required dependencies updated
               dependencies: Object.keys(toPackage)
                 .filter((path) => file.dependsOn.includes(path))

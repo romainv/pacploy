@@ -23,8 +23,20 @@ const command = {
       })
       .option("force-delete", {
         type: "boolean",
-        describe: "If set, will delete the existing stack before deploying",
+        describe: "If set, will bypass any resource deletion confirmation",
         default: Boolean(process.argv.indexOf("--force-delete") > -1),
+      })
+      .option("no-prune", {
+        type: "boolean",
+        describe:
+          "If set, will not prune unused packaged files associated with supplied stack from deployment bucket",
+        default: Boolean(process.argv.indexOf("--no-prune") > -1),
+      })
+      .option("cleanup", {
+        type: "boolean",
+        describe:
+          "If set, will delete retained resources assiciated with the supplied stack",
+        default: Boolean(process.argv.indexOf("--cleanup") > -1),
       })
       .option("force-upload", {
         type: "boolean",

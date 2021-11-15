@@ -18,7 +18,7 @@ import getArchiveBasename from "./getArchiveBasename.js"
  * the filesystem with their path in the archive. Either params.files or
  * params.dir should be provided
  * @param {String} [params.zipTo] The destination path of the zip file. If
- * omitted, will generated one from the package dir
+ * omitted, will generate one from the package dir
  * @param {String} [format="zip"] The archive format to use ('zip' or 'tar')
  * @param {Object} [options] The zip or tar options
  * @return {String} The path to the zipped file

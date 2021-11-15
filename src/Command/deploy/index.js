@@ -29,6 +29,10 @@ import cleanup from "../cleanup/index.js"
  * existing stack before deploying the new one
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * resources even if they were not updated since last upload
+ * @param {Boolean} [params.noPrune=false] If true, will not prune unused
+ * packaged files associated with supplied stack from deployment bucket
+ * @param {Boolean} [params.cleanup=false] If true, will delete retained
+ * resources assiciated with the supplied stack
  * @param {String} [params.syncPath] If provided, will sync the deployed infra
  * locally
  */
@@ -42,6 +46,8 @@ async function deploy({
   stackTags = {},
   forceDelete = false,
   forceUpload = false,
+  noPrune = false,
+  cleanup: shouldDeleteRetainedResources = false,
   syncPath,
 }) {
   const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
@@ -68,6 +74,8 @@ async function deploy({
     deployBucket,
     deployEcr,
     forceUpload,
+    stackParameters,
+    stackTags,
   })
   // Create root change set
   const { changeSetArn, hasChanges } = await createChangeSet.call(this, {
@@ -100,7 +108,14 @@ async function deploy({
     }
   }
   // Cleanup retained resources
-  await cleanup.call(this, { region, stackName, forceDelete, deployBucket })
+  await cleanup.call(this, {
+    region,
+    stackName,
+    forceDelete,
+    deployBucket,
+    noPrune,
+    noRetained: !shouldDeleteRetainedResources,
+  })
   // Sync deployed infra if needed
   const outputs = syncPath
     ? await sync.call(this, { region, stackName, syncPath })
