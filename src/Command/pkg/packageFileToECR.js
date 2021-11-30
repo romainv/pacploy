@@ -34,7 +34,7 @@ async function packageFileToECR(
     cwd: isDir(file.path) ? file.path : dirname(file.path),
   })
   const { dockerBuild = {} } = existsSync(packagePath)
-    ? JSON.parse(readFileSync(packagePath, "utf-8"))
+    ? JSON.parse(readFileSync(packagePath, "utf-8") || "{}")
     : {}
   // Generate a base image tag to identify it consistently across runs
   // We use a tag as a way to manage multiple images (not just multiple
