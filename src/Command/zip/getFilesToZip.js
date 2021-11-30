@@ -32,7 +32,7 @@ export default async function getFilesToZip(dir, bundleDir) {
     bundledDependencies = [], // Dependencies to include
     ignore: ignorePatterns, // Paths to ignore
   } = existsSync(packagePath)
-    ? JSON.parse(readFileSync(packagePath, "utf-8"))
+    ? JSON.parse(readFileSync(packagePath, "utf-8") || "{}")
     : {}
   // Resolve root directory relative to the config file
   root = resolve(packageDir, root)
