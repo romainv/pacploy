@@ -103,7 +103,7 @@ async function getToken(region) {
   const ecr = new AWS.ECR({ apiVersion: "2015-09-21", region })
   const {
     authorizationData: [{ authorizationToken, proxyEndpoint }],
-  } = await ecr.getECRAuthorizationToken()
+  } = await ecr.getAuthorizationToken()
   const [username, password] = Buffer.from(authorizationToken, "base64")
     .toString()
     .split(":")
