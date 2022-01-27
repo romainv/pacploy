@@ -57,7 +57,7 @@ async function cleanup({
           .map(({ Key }) => Key),
       })
       this.tracker[pruned.length ? "interruptSuccess" : "interruptInfo"](
-        `${pruned.length ? pruned.length : "No"} files pruned`
+        `${pruned.length ? pruned.length : "No"} unused files pruned`
       )
     }
   }
