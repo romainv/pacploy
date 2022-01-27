@@ -1,6 +1,6 @@
 {
   "name": "pacploy",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Package and deploy CloudFormation templates with a simple CLI",
   "author": "Romain Vermeulen",
   "license": "MIT",

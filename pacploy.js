@@ -28,8 +28,10 @@ async function getUserConf(cliArgs) {
       resolve(process.cwd(), cliArgs[cliArgs.indexOf("--config") + 1])
     : // Search for pacploy.config up in the tree
       findUpSync(["pacploy.config.js", "pacploy.config.json"])
-  if (userConfPath) userConf = await import(userConfPath)
-  else {
+  if (userConfPath) {
+    userConf = await import(userConfPath)
+    if (userConf.default) userConf = userConf.default
+  } else {
     // Search for 'pacploy' entry in the package's package.json
     const packagePath = findUpSync("package.json")
     if (packagePath)
