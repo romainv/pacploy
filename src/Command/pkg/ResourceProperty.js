@@ -164,7 +164,7 @@ const packingList = {
       !isValidS3Uri(propValue.ScriptLocation)
         ? { S3: [propValue.ScriptLocation] }
         : {},
-    isPackaged: (propValue) =>
+    packaged: (propValue) =>
       isValidS3Uri(propValue.ScriptLocation)
         ? { S3: [parseS3Uri(propValue.ScriptLocation)] }
         : {},
