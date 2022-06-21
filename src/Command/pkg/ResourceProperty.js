@@ -207,6 +207,13 @@ const packingList = {
     update: (propValue, { [propValue]: location }) =>
       readFileSync(location, "utf8"),
   },
+  "AWS::CloudFront::Function.FunctionCode": {
+    toPackage: (propValue) =>
+      propValue.startsWith(".") ? { INLINE: [propValue] } : {},
+    packaged: () => {}, // Not specified for inline
+    update: (propValue, { [propValue]: location }) =>
+      readFileSync(location, "utf8"),
+  },
   "AWS::ECS::TaskDefinition.ContainerDefinitions": {
     // propValue is a list of ContainerDefinitions whose Image properties point
     // at the ECR images that we may need to package
