@@ -172,25 +172,25 @@ function getDependencies(
         // github.com/nodejs/node/issues/33460). In this case, we fall back to
         // an alternative method to lookup the dependency path
         try {
-          depPath = resolvePackageSync(dep, cwd)
+          depPath = join(resolvePackageSync(dep, cwd), "package.json")
         } catch (err2) {
           finalError = err2 // Use the latest error instead
         }
       if (!depPath)
         // If the path still couldn't be found
         throw new Error(
-          `Unable to find dependency ${join(
-            dep,
-            "package.json"
-          )} from ${cwd}: ${finalError}`
+          `Unable to locate dependency ${dep} from ${cwd}: ${finalError}`
         )
     }
     if (bundledDependencies.includes(dep) || !ignore.has(depPath)) {
       // If the current package is not ignored, or has been specified in the
       // list of dependencies to bundle
       deps.set(dep, dirname(depPath)) // Add dependency dir to the list
-      // Recursively add sub-dependencies, if any
-      const { dependencies = {} } = require(depPath) // Read from package.json
+      // Recursively add sub-dependencies, if any (read from package.json)
+      const { dependencies = {} } = existsSync(depPath)
+        ? // We may have found the package, but it may not have package.json
+          JSON.parse(readFileSync(depPath, "utf-8"))
+        : {}
       getDependencies(
         Object.keys(dependencies),
         dirname(depPath),
