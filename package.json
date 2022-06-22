@@ -1,6 +1,6 @@
 {
   "name": "pacploy",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Package and deploy CloudFormation templates with a simple CLI",
   "author": "Romain Vermeulen",
   "license": "MIT",
@@ -47,6 +47,7 @@
     "glob": "^7.2.0",
     "locate-path": "^7.1.0",
     "on-change": "^4.0.0",
+    "package-resolver": "^1.1.0",
     "progress": "^2.0.3",
     "tmp": "^0.2.1",
     "yaml-cfn": "^0.3.1",

@@ -9,6 +9,7 @@ import { locatePath } from "locate-path"
 import { readFileSync, readFile, existsSync } from "fs"
 import getFilesMatching from "./getFilesMatching.js"
 import Module, { createRequire } from "module"
+import { resolvePackageSync } from "package-resolver"
 
 const require = createRequire(import.meta.url)
 
@@ -164,12 +165,25 @@ function getDependencies(
         paths: Module._nodeModulePaths(cwd),
       })
     } catch (err) {
-      throw new Error(
-        `Unable to find dependency ${join(
-          dep,
-          "package.json"
-        )} from ${cwd}: ${err}`
-      )
+      let finalError = err
+      if (err.code === "ERR_PACKAGE_PATH_NOT_EXPORTED")
+        // For ESM modules, resolving package.json may fail if it is not
+        // included in the module's exports (see
+        // github.com/nodejs/node/issues/33460). In this case, we fall back to
+        // an alternative method to lookup the dependency path
+        try {
+          depPath = resolvePackageSync(dep, cwd)
+        } catch (err2) {
+          finalError = err2 // Use the latest error instead
+        }
+      if (!depPath)
+        // If the path still couldn't be found
+        throw new Error(
+          `Unable to find dependency ${join(
+            dep,
+            "package.json"
+          )} from ${cwd}: ${finalError}`
+        )
     }
     if (bundledDependencies.includes(dep) || !ignore.has(depPath)) {
       // If the current package is not ignored, or has been specified in the
