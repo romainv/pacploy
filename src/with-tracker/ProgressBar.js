@@ -42,6 +42,9 @@ export default class ProgressBar extends BaseProgressBar {
     const chars = "/-\\|"
     let activity = 0
     this.spinner = setInterval(() => {
+      // Stop the interval in case the tracker's total is undefined, which may
+      // happen in race conditions when an error occurs in a tracked function
+      if (this.total === undefined) clearInterval(this.spinner)
       if (!this.spinner._destroyed && !this.hidden) {
         // Update the spinner if the interval hasn't been killed yet or the
         // progress bar is hidden
