@@ -50,6 +50,10 @@ async function deploy({
   cleanup: shouldDeleteRetainedResources = false,
   syncPath,
 }) {
+  // Convert JSON strings into JSON objects if needed
+  if (typeof stackParameters === "string")
+    stackParameters = JSON.parse(stackParameters)
+  if (typeof stackTags === "string") stackTags = JSON.parse(stackTags)
   const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
   // Validate template
   if ((await validate.call(this, { region, templatePath })) !== true) {
