@@ -344,18 +344,27 @@ const packingList = {
         ),
       }),
   },
-  "AWS::AppRunner::Service.ImageRepository": {
+  "AWS::AppRunner::Service.SourceConfiguration": {
     toPackage: (propValue) =>
-      propValue.ImageRepositoryType === "ECR" &&
-      !isValidECRUri(propValue.ImageIdentifier)
-        ? { ECR: [propValue.ImageIdentifier] }
+      propValue.ImageRepository &&
+      propValue.ImageRepository.ImageRepositoryType === "ECR" &&
+      !isValidECRUri(propValue.ImageRepository.ImageIdentifier)
+        ? { ECR: [propValue.ImageRepository.ImageIdentifier] }
         : {},
     packaged: (propValue) =>
-      propValue.ImageRepositoryType === "ECR" && isValidECRUri(propValue)
-        ? { ECR: [propValue.ImageIdentifier] }
+      propValue.ImageRepository &&
+      propValue.ImageRepository.ImageRepositoryType === "ECR" &&
+      isValidECRUri(propValue)
+        ? { ECR: [propValue.ImageRepository.ImageIdentifier] }
         : {},
-    update: (propValue, { [propValue.ImageIdentifier]: location }) =>
-      Object.assign(propValue, { ImageIdentifier: location }),
+    update: (
+      propValue,
+      { [propValue.ImageRepository.ImageIdentifier]: location }
+    ) =>
+      Object.assign(
+        propValue,
+        Object.assign(propValue.ImageRepository, { ImageIdentifier: location })
+      ),
   },
 }
 
