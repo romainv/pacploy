@@ -361,10 +361,11 @@ const packingList = {
       propValue,
       { [propValue.ImageRepository.ImageIdentifier]: location }
     ) =>
-      Object.assign(
-        propValue,
-        Object.assign(propValue.ImageRepository, { ImageIdentifier: location })
-      ),
+      Object.assign(propValue, {
+        ImageRepository: Object.assign(propValue.ImageRepository, {
+          ImageIdentifier: location,
+        }),
+      }),
   },
 }
 
