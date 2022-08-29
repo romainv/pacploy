@@ -344,6 +344,19 @@ const packingList = {
         ),
       }),
   },
+  "AWS::AppRunner::Service.ImageRepository": {
+    toPackage: (propValue) =>
+      propValue.ImageRepositoryType === "ECR" &&
+      !isValidECRUri(propValue.ImageIdentifier)
+        ? { ECR: [propValue.ImageIdentifier] }
+        : {},
+    packaged: (propValue) =>
+      propValue.ImageRepositoryType === "ECR" && isValidECRUri(propValue)
+        ? { ECR: [propValue.ImageIdentifier] }
+        : {},
+    update: (propValue, { [propValue.ImageIdentifier]: location }) =>
+      Object.assign(propValue, { ImageIdentifier: location }),
+  },
 }
 
 /**
