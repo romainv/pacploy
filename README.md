@@ -391,8 +391,9 @@ The options are specified as follows:
   "bundledDependencies": ["cfn-response", "node-fetch"],
   "ignore": ["node_modules/aws-sdk"],
   "dockerBuild": {
-    "buildArgs": {
-      "NODE_VERSION": "v14.17.6"
+    "buildargs": {
+      "NODE_VERSION": "v14.17.6",
+      "ENV_VAR": "${ENV_VAR}"
     }
   },
   "root": "."
@@ -417,7 +418,9 @@ Here is what these options do:
   `.gitignore`
 - `dockerBuild` (optional) provides options to build a docker image (see
   [Docker's documentation](https://docs.docker.com/engine/api/v1.37/#operation/ImageBuild)
-  for available options)
+  for available options). It is possible to reference environment variables in
+  buildargs values, using the format `${ENV_VAR}`. Such references will be
+  replaced by their value in the environment (`process.env["ENV_VAR"]`)
 - `root` (optional) can be specified to change the default root folder used to
   resolve the relative paths specified in `files`. This can be useful to include
   files from parent folders in the package. If `ignore` is specified in

@@ -36,6 +36,20 @@ async function packageFileToECR(
   const { dockerBuild = {} } = existsSync(packagePath)
     ? JSON.parse(readFileSync(packagePath, "utf-8") || "{}")
     : {}
+  // Replace references to env variables in build args
+  if (typeof dockerBuild.buildargs === "object") {
+    // If any build arguments were specified
+    for (const [argName, argValue] of Object.entries(dockerBuild.buildargs)) {
+      // Match all variable references ('${VAR}') in the current argument
+      const matches = [...argValue.matchAll(/\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g)]
+      // Replace all the references by their value in process.env
+      let newArgValue = argValue
+      for (const [ref, varName] of matches)
+        newArgValue = newArgValue.replace(ref, process.env[varName] || "")
+      // Update the buildargs parameters
+      dockerBuild.buildargs[argName] = newArgValue
+    }
+  }
   // Generate a base image tag to identify it consistently across runs
   // We use a tag as a way to manage multiple images (not just multiple
   // versions of the same image) within a single Docker repository
