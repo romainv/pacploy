@@ -213,7 +213,7 @@ const packingList = {
           )
           .map((arg) => ({
             // Replace the argument's value with the packaged location
-            [arg]: getS3Uri(parseS3Uri(locations[arg])),
+            [arg]: getS3Uri(parseS3Uri(locations[propValue[arg]])),
           }))
       ),
   },
