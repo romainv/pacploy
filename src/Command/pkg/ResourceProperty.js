@@ -26,6 +26,15 @@ export default class ResourceProperty {
   }
 }
 
+// Define the list of arguments to package for the DefaultArguments property of
+// the AWS::Glue::Job resource
+const awsGlueJobDefaultArgumentsToPackage = [
+  "--scriptLocation",
+  "--extra-jars",
+  "--extra-files",
+  "--extra-py-files",
+]
+
 // Define the list of resourceType/properties that should be packaged. The
 // object keys are composed by the CloudFormation resourceType followed by the
 // property name (dot-separated). The property name is the first-level only
@@ -172,6 +181,38 @@ const packingList = {
       Object.assign(propValue, {
         ScriptLocation: getS3Uri(parseS3Uri(location)),
       }),
+  },
+  "AWS::Glue::Job.DefaultArguments": {
+    // propValue contains the map of CLI arguments and their values. Some of
+    // these arguments should point at S3 locations so we package them if
+    // needed
+    toPackage: (propValue) =>
+      awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
+        if (!isValidS3Uri(propValue[arg])) {
+          if (!res.S3) res.S3 = [] // Initialize the list if needed
+          res.S3.push(propValue[arg]) // Add the file
+        }
+        return res
+      }, {}),
+    packaged: (propValue) =>
+      awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
+        if (isValidS3Uri(propValue[arg])) {
+          if (!res.S3) res.S3 = [] // Initialize the list if needed
+          res.S3.push(parseS3Uri(propValue[arg])) // Add the file
+        }
+        return res
+      }, {}),
+    update: (propValue, locations) =>
+      Object.assign(
+        propValue,
+        ...awsGlueJobDefaultArgumentsToPackage
+          // Keep only the arguments that were not already packaged
+          .filter((arg) => !isValidS3Uri(propValue[arg]))
+          .map((arg) => ({
+            // Replace the argument's value with the packaged location
+            [arg]: getS3Uri(parseS3Uri(locations[arg])),
+          }))
+      ),
   },
   "AWS::Include.Location": {
     toPackage: (propValue) =>
