@@ -188,7 +188,7 @@ const packingList = {
     // needed
     toPackage: (propValue) =>
       awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
-        if (!isValidS3Uri(propValue[arg])) {
+        if (propValue[arg] !== undefined && !isValidS3Uri(propValue[arg])) {
           if (!res.S3) res.S3 = [] // Initialize the list if needed
           res.S3.push(propValue[arg]) // Add the file
         }
@@ -196,7 +196,7 @@ const packingList = {
       }, {}),
     packaged: (propValue) =>
       awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
-        if (isValidS3Uri(propValue[arg])) {
+        if (propValue[arg] !== undefined && isValidS3Uri(propValue[arg])) {
           if (!res.S3) res.S3 = [] // Initialize the list if needed
           res.S3.push(parseS3Uri(propValue[arg])) // Add the file
         }
@@ -207,7 +207,10 @@ const packingList = {
         propValue,
         ...awsGlueJobDefaultArgumentsToPackage
           // Keep only the arguments that were not already packaged
-          .filter((arg) => !isValidS3Uri(propValue[arg]))
+          .filter(
+            (arg) =>
+              propValue[arg] !== undefined && !isValidS3Uri(propValue[arg])
+          )
           .map((arg) => ({
             // Replace the argument's value with the packaged location
             [arg]: getS3Uri(parseS3Uri(locations[arg])),
