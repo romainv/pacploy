@@ -31,10 +31,14 @@ export default async function getFilesToZip(dir, bundleDir) {
     files: includePatterns = ["*"], // Files to include
     root = ".", // Path relative to which includePatterns are matched
     bundledDependencies = [], // Dependencies to include
+    bundleDependencies = [], // Alternative spelling
     ignore: ignorePatterns, // Paths to ignore
   } = existsSync(packagePath)
     ? JSON.parse(readFileSync(packagePath, "utf-8") || "{}")
     : {}
+  if (bundleDependencies.length)
+    // Support for both spelling, giving priority to bundleDependencies
+    bundledDependencies = bundleDependencies
   // Resolve root directory relative to the config file
   root = resolve(packageDir, root)
   // Add patterns that should always be included in the bundle
