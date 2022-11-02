@@ -10,22 +10,31 @@ const queue = new Map() // Log of all requests received
  * @return {Function} The throttled version of the function
  */
 export default function throttle(fn) {
-  return async (...args) => {
-    let timeout // Will delay the function execution to meet the rate limit
-    // Delay the function execution by as many intervals as necessary to
-    // process entire queue while meeting the rate limit
-    const delay = Math.floor(queue.size / limit) * interval
-    const res = await new Promise((res, rej) => {
-      // Execute the original function and return its result after the delay
-      timeout = setTimeout(() => res(fn.apply(this, args)), delay)
-      // Register delayed request in the queue, allowing to reject it if needed
-      queue.set(timeout, rej)
-      // Remove the function from the queue in the next interval so it still
-      // counts towards the current interval's limit
-      setTimeout(() => queue.delete(timeout), delay + interval)
-    })
-    return res
-  }
+  return call.bind(this, fn)
+}
+
+/**
+ * Execute a function while respecting the rate limit
+ * @param {Function} fn The function to throttle, either async or normal
+ * @param {...Object} args The function's arguments
+ * @return {Promise} A promise that will resolve with the supplied function's
+ * result
+ */
+export async function call(fn, ...args) {
+  let timeout // Will delay the function execution to meet the rate limit
+  // Delay the function execution by as many intervals as necessary to
+  // process entire queue while meeting the rate limit
+  const delay = Math.floor(queue.size / limit) * interval
+  const res = await new Promise((res, rej) => {
+    // Execute the original function and return its result after the delay
+    timeout = setTimeout(() => res(fn.apply(this, args)), delay)
+    // Register delayed request in the queue, allowing to reject it if needed
+    queue.set(timeout, rej)
+    // Remove the function from the queue in the next interval so it still
+    // counts towards the current interval's limit
+    setTimeout(() => queue.delete(timeout), delay + interval)
+  })
+  return res
 }
 
 /**

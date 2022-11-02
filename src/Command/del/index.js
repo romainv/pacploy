@@ -1,4 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import {
   deleteSuccess as deleteSuccessStatuses,
   deleteFailed as deleteFailedStatuses,
@@ -6,7 +7,11 @@ import {
 import getStatus from "../getStatus/index.js"
 import waitForStatus from "../waitForStatus/index.js"
 import cleanup from "../cleanup/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+  DeleteStackCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Delete a stack and its retained resources
@@ -18,7 +23,7 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @return {String} The stack status after attempting to delete it
  */
 async function del({ region, stackName, forceDelete }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Check if stack exists
   const stackStatus = await getStatus.call(this, { region, stackName })
   // Ask user confirmation
@@ -33,7 +38,10 @@ async function del({ region, stackName, forceDelete }) {
   if (stackStatus !== "NEW") {
     ;({
       Stacks: [{ StackId: stackId }],
-    } = await cf.describeStacks({ StackName: stackName }))
+    } = await call(
+      cf.send,
+      new DescribeStacksCommand({ StackName: stackName })
+    ))
     // Attempt to delete the stack if it exists
     if (await _del.call(this, { region, stackId })) {
       success1 = true
@@ -63,8 +71,8 @@ async function del({ region, stackName, forceDelete }) {
  * @return {Boolean} Whether the deletion succeeded
  */
 async function _del({ region, stackId }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
-  await cf.deleteStack({ StackName: stackId })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  await call(cf.send, new DeleteStackCommand({ StackName: stackId }))
   const res = await waitForStatus.call(this, {
     region,
     arn: stackId,

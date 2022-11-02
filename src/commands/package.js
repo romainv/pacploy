@@ -1,5 +1,3 @@
-import AWS from "../aws-sdk-proxy/index.js"
-
 const command = {
   command: "package",
   describe: "Package dependencies to S3 or ECR",
@@ -8,7 +6,6 @@ const command = {
       .option("region", {
         type: "string",
         describe: "The region in which the stack is deployed",
-        default: AWS.config.region,
         demandOption: true,
       })
       .option("template-path", {

@@ -1,4 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import {
   createSuccess as createSuccessStatuses,
   createFailed as createFailedStatuses,
@@ -6,7 +7,10 @@ import {
 import getChangeSetArgs from "./getChangeSetArgs.js"
 import waitForStatus from "../waitForStatus/index.js"
 import deleteChangeSets from "../deleteChangeSets/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  CreateChangeSetCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Create a change set for the supplied stack
@@ -35,7 +39,7 @@ async function createChangeSet({
   quiet = false,
   attempts = 0,
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   if (!quiet) this.tracker.setStatus("creating change set")
   // Retrieve creation arguments
   const args = await getChangeSetArgs.call(this, {
@@ -49,7 +53,10 @@ async function createChangeSet({
   // Create the requested change set
   let changeSetArn
   try {
-    ;({ Id: changeSetArn } = await cf.createChangeSet(args))
+    ;({ Id: changeSetArn } = await call(
+      cf.send,
+      new CreateChangeSetCommand(args)
+    ))
   } catch (err) {
     if (
       err.code === "LimitExceededException" &&

@@ -1,6 +1,10 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import supported from "./supported.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  ResourceGroupsTaggingAPIClient,
+  GetResourcesCommand,
+} from "@aws-sdk/client-resource-groups-tagging-api"
 
 /**
  * Retrieve remaining resources based on their tags. This allows to identify
@@ -23,15 +27,18 @@ async function listRetainedResources({
   exclude = [],
   nextToken,
 }) {
-  const rg = new AWS.ResourceGroupsTaggingAPI({
+  const rg = new ResourceGroupsTaggingAPIClient({
     apiVersion: "2017-01-26",
     region,
   })
   // Retrieve list of resources with the matching RootStackName tag
-  const { ResourceTagMappingList, PaginationToken } = await rg.getResources({
-    PaginationToken: nextToken,
-    TagFilters: [{ Key: "RootStackName", Values: [stackName] }],
-  })
+  const { ResourceTagMappingList, PaginationToken } = await call(
+    rg.send,
+    new GetResourcesCommand({
+      PaginationToken: nextToken,
+      TagFilters: [{ Key: "RootStackName", Values: [stackName] }],
+    })
+  )
   // Extract resources ARN
   const resources = ResourceTagMappingList.map(
     ({ ResourceARN }) => ResourceARN

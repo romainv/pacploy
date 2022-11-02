@@ -1,4 +1,5 @@
 import { tracker } from "../with-tracker/index.js"
+import { setRate } from "../throttle.js"
 import createChangeSet from "./createChangeSet/index.js"
 import del from "./del/index.js"
 import cleanup from "./cleanup/index.js"
@@ -20,6 +21,8 @@ export default class Command {
    * Class instanciation
    */
   constructor() {
+    // Set a safe request limit to AWS API
+    setRate(2, 1000)
     // Customize the progress bar (removes the actual bar and keep only the
     // spinner as most operations don't have a predictable completion)
     tracker.bar.fmt = ":spinner :status"

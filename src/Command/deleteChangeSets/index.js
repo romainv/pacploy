@@ -1,6 +1,10 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import getChangeSets from "./getChangeSets.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  DeleteChangeSetCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Delete the change sets associated with a stack
@@ -12,7 +16,7 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @return {Array} The list of deleted change set ids
  */
 async function deleteChangeSets({ region, stackName, confirm = true }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Retrieve list of change sets
   const changeSets = await getChangeSets.call(this, { region, stackName })
   // Ask confirmation
@@ -27,7 +31,10 @@ async function deleteChangeSets({ region, stackName, confirm = true }) {
   await Promise.all(
     changeSetsToDelete.map(async (changeSetId) => {
       try {
-        await cf.deleteChangeSet({ ChangeSetName: changeSetId })
+        await call(
+          cf.send,
+          new DeleteChangeSetCommand({ ChangeSetName: changeSetId })
+        )
         changeSetsDeleted.push(changeSetId)
         this.tracker.setStatus(
           [

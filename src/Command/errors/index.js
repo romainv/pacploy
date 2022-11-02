@@ -1,7 +1,11 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import { stable as stableStatuses } from "../statuses.js"
 import displayEvents from "./displayEvents.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  DescribeStackEventsCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Retrieve the errors for a failed stack deployment, recursively for nested
@@ -22,18 +26,19 @@ async function getErrors({
   timestamp2,
   parentStackId,
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("retrieving errors")
   // Retrieve all relevant events
   let nextToken,
     lastTimestamp,
     events = []
   do {
-    const { StackEvents: eventsPage, NextToken } = await cf.describeStackEvents(
-      {
+    const { StackEvents: eventsPage, NextToken } = await call(
+      cf.send,
+      new DescribeStackEventsCommand({
         StackName: stackName,
         NextToken: nextToken,
-      }
+      })
     )
     nextToken = NextToken // Update the token
     if (!eventsPage.length) return // If no events were found

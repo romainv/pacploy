@@ -1,4 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import { createReadStream, writeSync } from "fs"
 import { extname, join } from "path"
 import updateTemplate from "./updateTemplate.js"
@@ -6,7 +7,12 @@ import zip from "../zip/index.js"
 import isDir from "./isDir.js"
 import md5 from "./md5.js"
 import tmp from "tmp"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  S3Client,
+  PutObjectTaggingCommand,
+  HeadObjectCommand,
+} from "@aws-sdk/client-s3"
+import { Upload } from "@aws-sdk/lib-storage"
 
 /**
  * Package a local file to S3 if necessary
@@ -26,7 +32,7 @@ async function packageFileToS3(
   file,
   { region, deployBucket, dependencies, forceUpload = false, stackTags = {} }
 ) {
-  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
   // Retrieve content to upload and its md5 hash
   let content, hash
   if (
@@ -58,7 +64,10 @@ async function packageFileToS3(
   let status,
     exists = false
   try {
-    await s3.headObject({ Bucket: deployBucket, Key: key })
+    await call(
+      s3.send,
+      new HeadObjectCommand({ Bucket: deployBucket, Key: key })
+    )
     exists = true
     status = "exists"
   } catch (err) {
@@ -66,28 +75,25 @@ async function packageFileToS3(
   }
   if (forceUpload || !exists) {
     // If object doesn't exist yet, or upload was forced: upload it
-    await new Promise((res, rej) => {
-      s3.upload(
-        {
-          Bucket: deployBucket,
-          Key: key,
-          Body: content,
-        },
-        (err, data) => (err ? rej(err) : res(data))
-      )
-    })
+    await new Upload({
+      client: s3,
+      params: { Bucket: deployBucket, Key: key, Body: content },
+    }).done()
     status = !exists ? "updated" : "forced"
     // Apply tags to file
-    await s3.putObjectTagging({
-      Bucket: deployBucket,
-      Key: key,
-      Tagging: {
-        TagSet: Object.entries(stackTags).map(([Key, Value]) => ({
-          Key,
-          Value,
-        })),
-      },
-    })
+    await call(
+      s3.send,
+      new PutObjectTaggingCommand({
+        Bucket: deployBucket,
+        Key: key,
+        Tagging: {
+          TagSet: Object.entries(stackTags).map(([Key, Value]) => ({
+            Key,
+            Value,
+          })),
+        },
+      })
+    )
   }
   // Return the S3 location
   const regionPrefix = region === "us-east-1" ? "s3" : `s3-${region}`

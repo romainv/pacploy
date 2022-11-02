@@ -1,5 +1,3 @@
-import AWS from "../aws-sdk-proxy/index.js"
-
 const command = {
   command: "status",
   describe: "Retrieve the status of a stack",
@@ -13,7 +11,6 @@ const command = {
       .option("region", {
         type: "string",
         describe: "The region in which the stack is deployed",
-        default: AWS.config.region,
         demandOption: true,
       })
       .option("quiet", {

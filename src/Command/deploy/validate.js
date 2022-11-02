@@ -1,6 +1,10 @@
 import { readFileSync } from "fs"
 import withTracker from "../../with-tracker/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { call } from "../../throttle.js"
+import {
+  CloudFormationClient,
+  ValidateTemplateCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Validate a local template
@@ -11,14 +15,17 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * message otherwise
  */
 async function validate({ region, templatePath }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("validating template")
   let validation
   try {
-    await cf.validateTemplate({
-      // Open template as string
-      TemplateBody: readFileSync(templatePath, "utf8"),
-    })
+    await call(
+      cf.send,
+      new ValidateTemplateCommand({
+        // Open template as string
+        TemplateBody: readFileSync(templatePath, "utf8"),
+      })
+    )
     validation = true
   } catch (err) {
     validation = err.message

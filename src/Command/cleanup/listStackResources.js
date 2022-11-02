@@ -1,6 +1,11 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import supported from "./supported.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  ListStackResourcesCommand,
+  DescribeStacksCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Retrieve the resources associated with a live stack, recursively for nested
@@ -12,17 +17,20 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @return {Array} The list of resource arns
  */
 async function listStackResources({ region, stackName, nextToken }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("retrieving stack resources")
   // Retrieve list of resources for the current stack
-  const { StackResourceSummaries, NextToken } = await cf.listStackResources({
-    StackName: stackName,
-    NextToken: nextToken,
-  })
+  const { StackResourceSummaries, NextToken } = await call(
+    cf.send,
+    new ListStackResourcesCommand({
+      StackName: stackName,
+      NextToken: nextToken,
+    })
+  )
   // Retrieve region and account ID from the current stack arn
   const {
     Stacks: [{ StackId }],
-  } = await cf.describeStacks({ StackName: stackName })
+  } = await call(cf.send, new DescribeStacksCommand({ StackName: stackName }))
   const accountId = StackId.split(":")[4]
   // Extract the resources arns, including those in nested stacks
   // Start with the current stack id

@@ -1,5 +1,10 @@
 import withTracker from "../../with-tracker/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { call } from "../../throttle.js"
+import {
+  CloudFormationClient,
+  DescribeChangeSetCommand,
+  DescribeStacksCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Waits until a stack or a change set is in a particular status
@@ -23,7 +28,7 @@ async function waitForStatus({
   failure = [],
   msg = "checking status",
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Check if the supplied arn is that of a change set or a stack
   const isChangeSet = /arn:aws:cloudformation:[^:]+:[^:]+:changeSet\/.+/.test(
     arn
@@ -34,13 +39,15 @@ async function waitForStatus({
       // Retrieve status
       if (isChangeSet) {
         // Retrieve status of a change set
-        ;({ Status: status, StatusReason: statusReason } =
-          await cf.describeChangeSet({ ChangeSetName: arn }))
+        ;({ Status: status, StatusReason: statusReason } = await call(
+          cf.send,
+          new DescribeChangeSetCommand({ ChangeSetName: arn })
+        ))
       } else {
         // Retrieve status of a stack
         ;({
           Stacks: [{ StackStatus: status, StackStatusReason: statusReason }],
-        } = await cf.describeStacks({ StackName: arn }))
+        } = await call(cf.send, new DescribeStacksCommand({ StackName: arn })))
       }
       if (msg) this.tracker.setStatus(`${msg} (${status})`)
       // If we're about to go over the ticks budget, add some more

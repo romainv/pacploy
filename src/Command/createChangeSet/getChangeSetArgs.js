@@ -1,7 +1,11 @@
 import { readFileSync } from "fs"
+import { call } from "../../throttle.js"
 import withTracker from "../../with-tracker/index.js"
 import { isNew as isNewStatuses } from "../statuses.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  GetTemplateSummaryCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Generate valid arguments to provide to the change set creation request
@@ -24,7 +28,7 @@ async function getChangeSetArgs({
   stackParameters = {},
   stackTags = {},
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Convert templatePath to a Cloudformation argument
   const templateArg = templatePath.startsWith("http")
     ? { TemplateURL: templatePath }
@@ -34,7 +38,7 @@ async function getChangeSetArgs({
     Capabilities,
     Parameters: requiredParameters,
     DeclaredTransforms,
-  } = await cf.getTemplateSummary(templateArg)
+  } = await call(cf.send, new GetTemplateSummaryCommand(templateArg))
   // Adjust capabilities when using macros as they're missing
   if (DeclaredTransforms.length > 0) {
     if (!Capabilities.includes("CAPABILITY_AUTO_EXPAND"))

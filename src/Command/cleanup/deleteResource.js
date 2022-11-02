@@ -1,8 +1,24 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import emptyBucket from "./emptyBucket.js"
 import getResourceName from "./getResourceName.js"
 import supported from "./supported.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { S3Client, DeleteBucketCommand } from "@aws-sdk/client-s3"
+import { DynamoDBClient, DeleteTableCommand } from "@aws-sdk/client-dynamodb"
+import {
+  CognitoIdentityProviderClient,
+  UntagResourceCommand as UntagIdentityProviderCommand,
+  ListTagsForResourceCommand as ListTagsForIdentityProviderCommand,
+  DeleteUserPoolCommand,
+} from "@aws-sdk/client-cognito-identity-provider"
+import {
+  CognitoIdentityClient,
+  ListTagsForResourceCommand as ListTagsForCognitoPoolCommand,
+  UntagResourceCommand as UntagCognitoPoolCommand,
+  DeleteIdentityPoolCommand,
+} from "@aws-sdk/client-cognito-identity"
+import { AthenaClient, DeleteWorkGroupCommand } from "@aws-sdk/client-athena"
+import { ECRClient, DeleteRepositoryCommand } from "@aws-sdk/client-ecr"
 
 /**
  * Delete a resource given its ARN, with support for cleaning up that resource
@@ -14,18 +30,18 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * message, or false
  */
 async function deleteResource({ region, arn }) {
-  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
-  const db = new AWS.DynamoDB({ apiVersion: "2012-08-10", region })
-  const userPool = new AWS.CognitoIdentityServiceProvider({
+  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const db = new DynamoDBClient({ apiVersion: "2012-08-10", region })
+  const userPool = new CognitoIdentityProviderClient({
     apiVersion: "2016-04-18",
     region,
   })
-  const identityPool = new AWS.CognitoIdentity({
+  const identityPool = new CognitoIdentityClient({
     apiVersion: "2014-06-30",
     region,
   })
-  const athena = new AWS.Athena({ apiVersion: "2017-05-18", region })
-  const ecr = new AWS.ECR({ apiVersion: "2015-09-21", region })
+  const athena = new AthenaClient({ apiVersion: "2017-05-18", region })
+  const ecr = new ECRClient({ apiVersion: "2015-09-21", region })
   // Retrieve resource type and name
   const resourceType = arn.split(":")[2]
   let resourceName = getResourceName(arn)
@@ -39,31 +55,45 @@ async function deleteResource({ region, arn }) {
         // S3 buckets
         case "s3":
           await emptyBucket.call(this, { bucket: resourceName })
-          await s3.deleteBucket({ Bucket: resourceName })
+          await call(s3.send, new DeleteBucketCommand({ Bucket: resourceName }))
           return true
         // ECR repos
         case "ecr":
-          await ecr.deleteRepository({
-            repositoryName: resourceName,
-            force: true,
-          })
+          await call(
+            ecr.send,
+            new DeleteRepositoryCommand({
+              repositoryName: resourceName,
+              force: true,
+            })
+          )
           return true
         // DynamoDB tables
         case "dynamodb":
-          await db.deleteTable({ TableName: resourceName })
+          await call(
+            db.send,
+            new DeleteTableCommand({ TableName: resourceName })
+          )
           return true
         // User pools
         case "cognito-idp":
           try {
             // Start by removing tags as this is not automatic
-            // FIXME: Tags don't seem to be removed
-            await userPool.untagUserPool({
-              ResourceArn: arn,
-              TagKeys: Object.keys(
-                await userPool.listTagsForUserPool({ ResourceArn: arn })
-              ),
-            })
-            await userPool.deleteUserPool({ UserPoolId: resourceName })
+            await call(
+              userPool.send,
+              new UntagIdentityProviderCommand({
+                ResourceArn: arn,
+                TagKeys: Object.keys(
+                  await call(
+                    userPool.send,
+                    new ListTagsForIdentityProviderCommand({ ResourceArn: arn })
+                  )
+                ),
+              })
+            )
+            await call(
+              userPool.send,
+              new DeleteUserPoolCommand({ UserPoolId: resourceName })
+            )
           } catch (err) {
             if (err.code === "ResourceNotFoundException") {
               // If the cognito pool was not found (this happens as the pool may
@@ -77,19 +107,29 @@ async function deleteResource({ region, arn }) {
           }
           return true
         // Identity pools
-        // FIXME: Tags don't seem to be removed
         case "cognito-identity":
           try {
             // Start by removing tags as this is not automatic
-            await identityPool.untagIdentityPool({
-              ResourceArn: arn,
-              TagKeys: Object.keys(
-                await identityPool.listTagsForIdentityPool({ ResourceArn: arn })
-              ),
-            })
-            await identityPool.deleteIdentityPool({
-              IdentityPoolId: resourceName,
-            })
+            await call(
+              identityPool.send,
+              new UntagCognitoPoolCommand({
+                ResourceArn: arn,
+                TagKeys: Object.keys(
+                  await call(
+                    identityPool.send,
+                    new ListTagsForCognitoPoolCommand({
+                      ResourceArn: arn,
+                    })
+                  )
+                ),
+              })
+            )
+            await call(
+              identityPool.send,
+              new DeleteIdentityPoolCommand({
+                IdentityPoolId: resourceName,
+              })
+            )
           } catch (err) {
             if (err.code === "ResourceNotFoundException") {
               // If the cognito pool was not found (this happens as the pool may
@@ -104,11 +144,14 @@ async function deleteResource({ region, arn }) {
           return true
         // Athena workgroup
         case "athena":
-          await athena.deleteWorkGroup({
-            WorkGroup: resourceName,
-            // Delete any named queries or query executions
-            RecursiveDeleteOption: true,
-          })
+          await call(
+            athena.send,
+            new DeleteWorkGroupCommand({
+              WorkGroup: resourceName,
+              // Delete any named queries or query executions
+              RecursiveDeleteOption: true,
+            })
+          )
           return true
         // Unhandled resource type
         default:

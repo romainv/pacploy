@@ -1,4 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
+import { call } from "../../throttle.js"
 import errors from "../errors/index.js"
 import {
   deploySuccess as deploySuccessStatuses,
@@ -12,8 +13,11 @@ import pkg from "../pkg/index.js"
 import createChangeSet from "../createChangeSet/index.js"
 import waitForStatus from "../waitForStatus/index.js"
 import getStackOutputs from "../sync/getStackOutputs.js"
-import AWS from "../../aws-sdk-proxy/index.js"
 import cleanup from "../cleanup/index.js"
+import {
+  CloudFormationClient,
+  ExecuteChangeSetCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Check the status of a stack
@@ -54,7 +58,7 @@ async function deploy({
   if (typeof stackParameters === "string")
     stackParameters = JSON.parse(stackParameters)
   if (typeof stackTags === "string") stackTags = JSON.parse(stackTags)
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Validate template
   if ((await validate.call(this, { region, templatePath })) !== true) {
     process.exitCode = 1
@@ -92,7 +96,10 @@ async function deploy({
   })
   if (hasChanges) {
     // If stack has changes to execute, deploy them
-    await cf.executeChangeSet({ ChangeSetName: changeSetArn })
+    await call(
+      cf.send,
+      new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
+    )
     const deployStatus = await waitForStatus.call(this, {
       region,
       arn: stackName,

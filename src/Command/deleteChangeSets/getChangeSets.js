@@ -1,5 +1,9 @@
 import withTracker from "../../with-tracker/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { call } from "../../throttle.js"
+import {
+  CloudFormationClient,
+  ListChangeSetsCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Retrieve the change sets associated with a stack
@@ -18,12 +22,15 @@ async function getChangeSets({
   nextToken,
   changeSets = [],
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Retrieve the next page of change sets
-  const { Summaries, NextToken } = await cf.listChangeSets({
-    StackName: stackName,
-    NextToken: nextToken,
-  })
+  const { Summaries, NextToken } = await call(
+    cf.send,
+    new ListChangeSetsCommand({
+      StackName: stackName,
+      NextToken: nextToken,
+    })
+  )
   // Append the changes to the list
   changeSets = changeSets.concat(Summaries)
   // Update the next token
