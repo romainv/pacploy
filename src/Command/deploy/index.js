@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import errors from "../errors/index.js"
 import {
   deploySuccess as deploySuccessStatuses,
@@ -97,6 +97,7 @@ async function deploy({
   if (hasChanges) {
     // If stack has changes to execute, deploy them
     await call(
+      cf,
       cf.send,
       new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
     )

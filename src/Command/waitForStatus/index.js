@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   CloudFormationClient,
   DescribeChangeSetCommand,
@@ -40,14 +40,21 @@ async function waitForStatus({
       if (isChangeSet) {
         // Retrieve status of a change set
         ;({ Status: status, StatusReason: statusReason } = await call(
+          cf,
           cf.send,
           new DescribeChangeSetCommand({ ChangeSetName: arn })
         ))
       } else {
         // Retrieve status of a stack
         ;({
-          Stacks: [{ StackStatus: status, StackStatusReason: statusReason }],
-        } = await call(cf.send, new DescribeStacksCommand({ StackName: arn })))
+          Stacks: [
+            { StackStatus: status, StackStatusReason: statusReason },
+          ] = [],
+        } = await call(
+          cf,
+          cf.send,
+          new DescribeStacksCommand({ StackName: arn })
+        ))
       }
       if (msg) this.tracker.setStatus(`${msg} (${status})`)
       // If we're about to go over the ticks budget, add some more

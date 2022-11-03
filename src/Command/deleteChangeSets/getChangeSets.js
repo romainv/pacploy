@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   CloudFormationClient,
   ListChangeSetsCommand,
@@ -24,7 +24,8 @@ async function getChangeSets({
 }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Retrieve the next page of change sets
-  const { Summaries, NextToken } = await call(
+  const { Summaries = [], NextToken } = await call(
+    cf,
     cf.send,
     new ListChangeSetsCommand({
       StackName: stackName,

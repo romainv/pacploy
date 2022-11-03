@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   deleteSuccess as deleteSuccessStatuses,
   deleteFailed as deleteFailedStatuses,
@@ -36,9 +36,8 @@ async function del({ region, stackName, forceDelete }) {
   this.tracker.setStatus("retrieving stack id")
   let stackId, success1
   if (stackStatus !== "NEW") {
-    ;({
-      Stacks: [{ StackId: stackId }],
-    } = await call(
+    ;({ Stacks: [{ StackId: stackId }] = [] } = await call(
+      cf,
       cf.send,
       new DescribeStacksCommand({ StackName: stackName })
     ))
@@ -72,7 +71,7 @@ async function del({ region, stackName, forceDelete }) {
  */
 async function _del({ region, stackId }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-  await call(cf.send, new DeleteStackCommand({ StackName: stackId }))
+  await call(cf, cf.send, new DeleteStackCommand({ StackName: stackId }))
   const res = await waitForStatus.call(this, {
     region,
     arn: stackId,

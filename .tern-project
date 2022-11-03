@@ -1,0 +1,19 @@
+{
+  "libs": [],
+  "loadEagerly": [
+    "src/**/*.js"
+  ],
+  "dontLoad": [
+    "node_modules/**",
+    "*.test.js"
+  ],
+  "plugins": {
+    "modules": {},
+    "es_modules": {},
+    "node": {},
+    "doc_comment": {
+      "fullDocs": true,
+      "strong": true
+    }
+  }
+}

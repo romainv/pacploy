@@ -1,6 +1,6 @@
 import { readFileSync } from "fs"
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   CloudFormationClient,
   ValidateTemplateCommand,
@@ -20,6 +20,7 @@ async function validate({ region, templatePath }) {
   let validation
   try {
     await call(
+      cf,
       cf.send,
       new ValidateTemplateCommand({
         // Open template as string

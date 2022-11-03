@@ -1,5 +1,5 @@
 import { readFileSync } from "fs"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import withTracker from "../../with-tracker/index.js"
 import { isNew as isNewStatuses } from "../statuses.js"
 import {
@@ -35,10 +35,10 @@ async function getChangeSetArgs({
     : { TemplateBody: readFileSync(templatePath, "utf8") }
   // Retrieving required capabilities and parameters
   const {
-    Capabilities,
-    Parameters: requiredParameters,
-    DeclaredTransforms,
-  } = await call(cf.send, new GetTemplateSummaryCommand(templateArg))
+    Capabilities = [],
+    Parameters: requiredParameters = [],
+    DeclaredTransforms = [],
+  } = await call(cf, cf.send, new GetTemplateSummaryCommand(templateArg))
   // Adjust capabilities when using macros as they're missing
   if (DeclaredTransforms.length > 0) {
     if (!Capabilities.includes("CAPABILITY_AUTO_EXPAND"))

@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import supported from "./supported.js"
 import {
   CloudFormationClient,
@@ -20,7 +20,8 @@ async function listStackResources({ region, stackName, nextToken }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   this.tracker.setStatus("retrieving stack resources")
   // Retrieve list of resources for the current stack
-  const { StackResourceSummaries, NextToken } = await call(
+  const { StackResourceSummaries = [], NextToken } = await call(
+    cf,
     cf.send,
     new ListStackResourcesCommand({
       StackName: stackName,
@@ -28,9 +29,11 @@ async function listStackResources({ region, stackName, nextToken }) {
     })
   )
   // Retrieve region and account ID from the current stack arn
-  const {
-    Stacks: [{ StackId }],
-  } = await call(cf.send, new DescribeStacksCommand({ StackName: stackName }))
+  const { Stacks: [{ StackId }] = [] } = await call(
+    cf,
+    cf.send,
+    new DescribeStacksCommand({ StackName: stackName })
+  )
   const accountId = StackId.split(":")[4]
   // Extract the resources arns, including those in nested stacks
   // Start with the current stack id

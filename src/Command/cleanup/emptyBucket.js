@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   S3Client,
   GetObjectTaggingCommand,
@@ -27,11 +27,12 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
     // Retrieve object versions
     let versionObjects, deleteMarkerObjects
     ;({
-      Versions: versionObjects,
-      DeleteMarkers: deleteMarkerObjects,
+      Versions: versionObjects = [],
+      DeleteMarkers: deleteMarkerObjects = [],
       NextVersionIdMarker: nextVersionIdMarker,
       NextKeyMarker: nextKeyMarker,
     } = await call(
+      s3,
       s3.send,
       new ListObjectVersionsCommand({
         Bucket: bucket,
@@ -52,6 +53,7 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
         objects.map(async ({ Key }) => {
           // Retrieve the object's tags
           const { TagSet } = await call(
+            s3,
             s3.send,
             new GetObjectTaggingCommand({
               Bucket: bucket,
@@ -77,6 +79,7 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
     }
     if (objects.length > 0) {
       await call(
+        s3,
         s3.send,
         new DeleteObjectsCommand({
           Bucket: bucket,

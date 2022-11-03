@@ -1,6 +1,6 @@
 import { yamlParse } from "yaml-cfn"
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 
@@ -37,6 +37,7 @@ async function parseRemoteTemplate({ region, templateBody, fn }) {
                 propValue
               )
               const { Body } = await call(
+                s3,
                 s3.send,
                 new GetObjectCommand({
                   Bucket: resourceProp.Bucket,

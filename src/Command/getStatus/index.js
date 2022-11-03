@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   CloudFormationClient,
   DescribeStacksCommand,
@@ -18,9 +18,11 @@ async function getStatus({ region, stackName, quiet = true }) {
   // Retrieve basic stack information, separating serialized values
   this.tracker.setStatus("retrieving stack status")
   try {
-    const {
-      Stacks: [{ StackStatus }],
-    } = await call(cf.send, new DescribeStacksCommand({ StackName: stackName }))
+    const { Stacks: [{ StackStatus }] = [] } = await call(
+      cf,
+      cf.send,
+      new DescribeStacksCommand({ StackName: stackName })
+    )
     status = StackStatus
   } catch (err) {
     // Capture case when stack doesn't exist as a specific status

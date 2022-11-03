@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import { createReadStream, writeSync } from "fs"
 import { extname, join } from "path"
 import updateTemplate from "./updateTemplate.js"
@@ -65,6 +65,7 @@ async function packageFileToS3(
     exists = false
   try {
     await call(
+      s3,
       s3.send,
       new HeadObjectCommand({ Bucket: deployBucket, Key: key })
     )
@@ -82,6 +83,7 @@ async function packageFileToS3(
     status = !exists ? "updated" : "forced"
     // Apply tags to file
     await call(
+      s3,
       s3.send,
       new PutObjectTaggingCommand({
         Bucket: deployBucket,

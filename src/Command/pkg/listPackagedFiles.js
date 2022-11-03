@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
 import parseRemoteTemplate from "./parseRemoteTemplate.js"
 import {
@@ -25,6 +25,7 @@ async function listPackagedFiles({ region, stackName, deployBucket }) {
   const packaged = []
   // Retrieve the template of the provided stack
   const { TemplateBody } = await call(
+    cf,
     cf.send,
     new GetTemplateCommand({
       StackName: stackName,
@@ -35,6 +36,7 @@ async function listPackagedFiles({ region, stackName, deployBucket }) {
     // If the template's deployBucket was passed, recalculate its key as it is
     // not linked to the stack anymore and add it to the list
     const { TemplateBody: originalContent } = await call(
+      cf,
       cf.send,
       new GetTemplateCommand({
         StackName: stackName,

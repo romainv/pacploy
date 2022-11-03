@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import { stable as stableStatuses } from "../statuses.js"
 import displayEvents from "./displayEvents.js"
 import {
@@ -33,7 +33,8 @@ async function getErrors({
     lastTimestamp,
     events = []
   do {
-    const { StackEvents: eventsPage, NextToken } = await call(
+    const { StackEvents: eventsPage = [], NextToken } = await call(
+      cf,
       cf.send,
       new DescribeStackEventsCommand({
         StackName: stackName,

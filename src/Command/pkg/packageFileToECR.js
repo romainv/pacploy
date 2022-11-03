@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import Docker from "dockerode"
 import zip from "../zip/index.js"
 import { findUp } from "find-up"
@@ -116,9 +116,16 @@ export default withTracker()(packageFileToECR)
  */
 async function getToken(region) {
   const ecr = new ECRClient({ apiVersion: "2015-09-21", region })
-  const {
-    authorizationData: [{ authorizationToken, proxyEndpoint }],
-  } = await call(ecr.send, new GetAuthorizationTokenCommand())
+  const { authorizationData: [{ authorizationToken, proxyEndpoint }] = [] } =
+    await call(
+      ecr,
+      ecr.send,
+      // FIXME: We use a dummy registryId as the SDK throws an error if
+      // registryIds is not passed (it tries to read properties of undefined).
+      // A future update may make passing registryIds optional again, as it
+      // seems that the permissions are not impacted
+      new GetAuthorizationTokenCommand({ registryIds: ["000000000000"] })
+    )
   const [username, password] = Buffer.from(authorizationToken, "base64")
     .toString()
     .split(":")

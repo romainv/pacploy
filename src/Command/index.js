@@ -1,5 +1,5 @@
 import { tracker } from "../with-tracker/index.js"
-import { setRate } from "../throttle.js"
+import { setRate } from "./throttle.js"
 import createChangeSet from "./createChangeSet/index.js"
 import del from "./del/index.js"
 import cleanup from "./cleanup/index.js"

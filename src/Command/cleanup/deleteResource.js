@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import emptyBucket from "./emptyBucket.js"
 import getResourceName from "./getResourceName.js"
 import supported from "./supported.js"
@@ -55,11 +55,16 @@ async function deleteResource({ region, arn }) {
         // S3 buckets
         case "s3":
           await emptyBucket.call(this, { bucket: resourceName })
-          await call(s3.send, new DeleteBucketCommand({ Bucket: resourceName }))
+          await call(
+            s3,
+            s3.send,
+            new DeleteBucketCommand({ Bucket: resourceName })
+          )
           return true
         // ECR repos
         case "ecr":
           await call(
+            ecr,
             ecr.send,
             new DeleteRepositoryCommand({
               repositoryName: resourceName,
@@ -70,6 +75,7 @@ async function deleteResource({ region, arn }) {
         // DynamoDB tables
         case "dynamodb":
           await call(
+            db,
             db.send,
             new DeleteTableCommand({ TableName: resourceName })
           )
@@ -79,11 +85,13 @@ async function deleteResource({ region, arn }) {
           try {
             // Start by removing tags as this is not automatic
             await call(
+              userPool,
               userPool.send,
               new UntagIdentityProviderCommand({
                 ResourceArn: arn,
                 TagKeys: Object.keys(
                   await call(
+                    userPool,
                     userPool.send,
                     new ListTagsForIdentityProviderCommand({ ResourceArn: arn })
                   )
@@ -91,6 +99,7 @@ async function deleteResource({ region, arn }) {
               })
             )
             await call(
+              userPool,
               userPool.send,
               new DeleteUserPoolCommand({ UserPoolId: resourceName })
             )
@@ -111,11 +120,13 @@ async function deleteResource({ region, arn }) {
           try {
             // Start by removing tags as this is not automatic
             await call(
+              identityPool,
               identityPool.send,
               new UntagCognitoPoolCommand({
                 ResourceArn: arn,
                 TagKeys: Object.keys(
                   await call(
+                    identityPool,
                     identityPool.send,
                     new ListTagsForCognitoPoolCommand({
                       ResourceArn: arn,
@@ -125,6 +136,7 @@ async function deleteResource({ region, arn }) {
               })
             )
             await call(
+              identityPool,
               identityPool.send,
               new DeleteIdentityPoolCommand({
                 IdentityPoolId: resourceName,
@@ -145,6 +157,7 @@ async function deleteResource({ region, arn }) {
         // Athena workgroup
         case "athena":
           await call(
+            athena,
             athena.send,
             new DeleteWorkGroupCommand({
               WorkGroup: resourceName,

@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import getChangeSets from "./getChangeSets.js"
 import {
   CloudFormationClient,
@@ -32,6 +32,7 @@ async function deleteChangeSets({ region, stackName, confirm = true }) {
     changeSetsToDelete.map(async (changeSetId) => {
       try {
         await call(
+          cf,
           cf.send,
           new DeleteChangeSetCommand({ ChangeSetName: changeSetId })
         )

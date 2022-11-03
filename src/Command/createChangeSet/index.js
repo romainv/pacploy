@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   createSuccess as createSuccessStatuses,
   createFailed as createFailedStatuses,
@@ -54,6 +54,7 @@ async function createChangeSet({
   let changeSetArn
   try {
     ;({ Id: changeSetArn } = await call(
+      cf,
       cf.send,
       new CreateChangeSetCommand(args)
     ))

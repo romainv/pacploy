@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import supported from "./supported.js"
 import {
   ResourceGroupsTaggingAPIClient,
@@ -32,7 +32,8 @@ async function listRetainedResources({
     region,
   })
   // Retrieve list of resources with the matching RootStackName tag
-  const { ResourceTagMappingList, PaginationToken } = await call(
+  const { ResourceTagMappingList = [], PaginationToken } = await call(
+    rg,
     rg.send,
     new GetResourcesCommand({
       PaginationToken: nextToken,

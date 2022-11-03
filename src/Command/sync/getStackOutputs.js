@@ -1,5 +1,5 @@
 import withTracker from "../../with-tracker/index.js"
-import { call } from "../../throttle.js"
+import { call } from "../throttle.js"
 import {
   CloudFormationClient,
   DescribeStacksCommand,
@@ -15,9 +15,11 @@ import {
 async function getStackInfo({ region, stackName }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Retrieve stack outputs
-  const {
-    Stacks: [{ Outputs }],
-  } = await call(cf.send, new DescribeStacksCommand({ StackName: stackName }))
+  const { Stacks: [{ Outputs }] = [] } = await call(
+    cf,
+    cf.send,
+    new DescribeStacksCommand({ StackName: stackName })
+  )
   // Serialize the output format
   return Outputs.reduce(
     (res, val) => Object.assign(res, { [val.OutputKey]: val.OutputValue }),
