@@ -1,4 +1,4 @@
-import { tracker } from "../with-tracker/index.js"
+import tracker from "./tracker.js"
 import { setRate } from "./throttle.js"
 import createChangeSet from "./createChangeSet/index.js"
 import del from "./del/index.js"
@@ -23,11 +23,6 @@ export default class Command {
   constructor() {
     // Set a safe request limit to AWS API
     setRate(2, 1000)
-    // Customize the progress bar (removes the actual bar and keep only the
-    // spinner as most operations don't have a predictable completion)
-    tracker.bar.fmt = ":spinner :status"
-    tracker.bar.width = 0
-    tracker.total = 1
     // Define methods
     this.createChangeSet = autoComplete(createChangeSet)
     this.del = autoComplete(del)
@@ -49,17 +44,22 @@ export default class Command {
  */
 function autoComplete(command) {
   return async function () {
-    // Capture function arguments
-    const args = arguments
     // Ensure progress bar is visible if multiple commands are chained
-    tracker.start()
-    tracker.ticks = 0
-    tracker.show()
+    tracker.total += 1
+    tracker.begin()
     // Execute the command
-    const res = await command.apply(this, args)
-    // Hide the progress bar upon completion
-    tracker.complete()
-    tracker.hide()
+    let res, error
+    try {
+      res = await command.apply(this, arguments)
+    } catch (err) {
+      error = err
+      tracker.interruptError(
+        `An error occurred while running command ${command.name}`
+      )
+    } finally {
+      tracker.end() // Stop the progress bar upon completion
+    }
+    if (error) throw error
     return res
   }
 }

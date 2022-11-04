@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { call } from "../throttle.js"
 import {
   S3Client,
@@ -15,9 +14,14 @@ import {
  * @param {Object} [params.tagsFilter] S3 objects tags to filter which objects
  * to delete
  * @param {Array<String>} [params.exclude] A list of keys to keep
- * @return {Array} The list of deleted keys
+ * @return {Promise<Array>} The list of deleted keys
  */
-async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
+export default async function emptyBucket({
+  region,
+  bucket,
+  tagsFilter,
+  exclude = [],
+}) {
   const s3 = new S3Client({ apiVersion: "2006-03-01", region })
   // Remove object versions first, then delete markers
   let nextVersionIdMarker,
@@ -91,5 +95,3 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
   } while (nextVersionIdMarker || nextKeyMarker)
   return deleted
 }
-
-export default withTracker()(emptyBucket)

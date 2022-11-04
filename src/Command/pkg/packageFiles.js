@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import packageFile from "./packageFile.js"
 
 /**
@@ -10,17 +10,14 @@ import packageFile from "./packageFile.js"
  * @param {String} [params.deployEcr] An ECR repo URI to package docker images
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * resources even if they were not updated since last upload
- * @param {Object} [params.stackTags] The stack tags to be applied to packaged
- * files as well
- * @return {Object} The updated set of files with packaged location
+ * @return {Promise<Object>} The updated set of files with packaged location
  */
-async function packageFiles({
+export default async function packageFiles({
   region,
   toPackage,
   deployBucket,
   deployEcr,
   forceUpload = false,
-  stackTags = {},
 }) {
   // Make sure an S3 bucket or an ECR repo are provided if needed
   if (
@@ -63,13 +60,12 @@ async function packageFiles({
           // Update file attributes with packaging outcomes
           Object.assign(
             toPackage[filePath],
-            await packageFile.call(this, {
+            await packageFile({
               region,
               file,
               deployBucket,
               deployEcr,
               forceUpload,
-              stackTags,
               // At this stage, toPackage has the required dependencies updated
               dependencies: Object.keys(toPackage)
                 .filter((path) => file.dependsOn.includes(path))
@@ -80,7 +76,7 @@ async function packageFiles({
             })
           )
           // Update packaging status
-          this.tracker.setStatus(
+          tracker.setStatus(
             `${
               Object.values(toPackage).filter(({ location }) => location).length
             } of ${Object.keys(toPackage).length} files uploaded (${
@@ -103,5 +99,3 @@ async function packageFiles({
   }
   return await run()
 }
-
-export default withTracker()(packageFiles)

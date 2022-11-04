@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { call } from "../throttle.js"
 import supported from "./supported.js"
 import {
@@ -19,9 +18,9 @@ import {
  * @param {String} params.stackName The name of the deployed stack
  * @param {Array} [params.exclude] A list of resource ARNs to exclude
  * @param {String} [params.nextToken] The pagination token, if any
- * @return {Array} The list of remaining resource ARNs
+ * @return {Promise<Array>} The list of remaining resource ARNs
  */
-async function listRetainedResources({
+export default async function listRetainedResources({
   region,
   stackName,
   exclude = [],
@@ -53,7 +52,7 @@ async function listRetainedResources({
   // If resources span multiple pages, recursively retrieve them
   return PaginationToken
     ? resources.concat(
-        await listRetainedResources.call(this, {
+        await listRetainedResources({
           region,
           stackName,
           nextToken: PaginationToken,
@@ -62,5 +61,3 @@ async function listRetainedResources({
       )
     : resources
 }
-
-export default withTracker()(listRetainedResources)

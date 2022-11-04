@@ -4,7 +4,7 @@ import { dirname, join } from "path"
 import addRootStackTag from "./middlewares/addRootStackTag.js"
 import { fileURLToPath } from "url"
 import { readdir } from "fs"
-import { tracker } from "./with-tracker/index.js"
+import tracker from "./Command/tracker.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -24,7 +24,7 @@ export default async function pacploy(confs = [], cliArgs = []) {
   if (cliArgs.includes("--stack-name"))
     // If a --stack-name is specified, filter the configuration matching it
     confs = confs.filter(
-      ({ stackName } = {}) =>
+      ({ stackName } = { stackName: undefined }) =>
         stackName === cliArgs[cliArgs.indexOf("--stack-name") + 1]
     )
   // Keep at least an empty conf object to execute the below loop
@@ -66,7 +66,7 @@ export default async function pacploy(confs = [], cliArgs = []) {
  * FIXME: Use yarg's .commandDir when this is resolved:
  * https://github.com/yargs/yargs/issues/571 is
  * @param {String} commandDir The path containing the commands definitions
- * @return {Array} The list of commands
+ * @return {Promise<Array>} The list of commands
  */
 async function getCommands(commandDir) {
   const files = await new Promise((res, rej) =>

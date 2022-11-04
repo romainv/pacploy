@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import { stable as stableStatuses } from "../statuses.js"
 import displayEvents from "./displayEvents.js"
@@ -17,9 +17,9 @@ import {
  * @param {Date} [params.timestamp2] The oldest date to filter events
  * @param {String} [params.parentStackId] Recursively keep track of the parent
  * stack
- * @return {Object} The errors info
+ * @return {Promise<Object>} The errors info
  */
-async function getErrors({
+export default async function getErrors({
   region,
   stackName,
   timestamp1,
@@ -27,7 +27,7 @@ async function getErrors({
   parentStackId,
 }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-  this.tracker.setStatus("retrieving errors")
+  tracker.setStatus("retrieving errors")
   // Retrieve all relevant events
   let nextToken,
     lastTimestamp,
@@ -110,7 +110,7 @@ async function getErrors({
             // If current resource is a nested stack
             Object.assign(
               errors.resources[LogicalResourceId],
-              await getErrors.call(this, {
+              await getErrors({
                 region,
                 stackName: PhysicalResourceId,
                 timestamp1,
@@ -126,8 +126,6 @@ async function getErrors({
   )
   if (!parentStackId)
     // Display errors before final return
-    displayEvents.call(this.tracker, errors)
+    displayEvents.call(tracker, errors)
   return errors
 }
-
-export default withTracker()(getErrors)

@@ -10,7 +10,6 @@ export default class ResourceProperty {
    * @param {String} resourceType The resource Type
    * @param {String} propName The property name
    * @param {String} propValue The property value
-   * @return {ResourceProperty} A class instance
    */
   constructor(resourceType, propName, propValue) {
     // Record the arguments
@@ -187,21 +186,23 @@ const packingList = {
     // these arguments should point at S3 locations so we package them if
     // needed
     toPackage: (propValue) =>
-      awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
-        if (propValue[arg] !== undefined && !isValidS3Uri(propValue[arg])) {
-          if (!res.S3) res.S3 = [] // Initialize the list if needed
-          res.S3.push(propValue[arg]) // Add the file
-        }
-        return res
-      }, {}),
+      awsGlueJobDefaultArgumentsToPackage.reduce(
+        (res, arg) => {
+          if (propValue[arg] !== undefined && !isValidS3Uri(propValue[arg]))
+            res.S3.push(propValue[arg]) // Add the file
+          return res
+        },
+        { S3: [] }
+      ),
     packaged: (propValue) =>
-      awsGlueJobDefaultArgumentsToPackage.reduce((res, arg) => {
-        if (propValue[arg] !== undefined && isValidS3Uri(propValue[arg])) {
-          if (!res.S3) res.S3 = [] // Initialize the list if needed
-          res.S3.push(parseS3Uri(propValue[arg])) // Add the file
-        }
-        return res
-      }, {}),
+      awsGlueJobDefaultArgumentsToPackage.reduce(
+        (res, arg) => {
+          if (propValue[arg] !== undefined && isValidS3Uri(propValue[arg]))
+            res.S3.push(parseS3Uri(propValue[arg])) // Add the file
+          return res
+        },
+        { S3: [] }
+      ),
     update: (propValue, locations) =>
       Object.assign(
         propValue,
@@ -262,21 +263,23 @@ const packingList = {
     // propValue is a list of ContainerDefinitions whose Image properties point
     // at the ECR images that we may need to package
     toPackage: (propValue) =>
-      propValue.reduce((res, { Image }) => {
-        if (!isValidECRUri(Image)) {
-          if (!res.ECR) res.ECR = [] // Initialize the destination object
-          res.ECR.push(Image) // Add the image to the list to package
-        }
-        return res
-      }, {}),
+      propValue.reduce(
+        (res, { Image }) => {
+          // Add the image to the list to package
+          if (!isValidECRUri(Image)) res.ECR.push(Image)
+          return res
+        },
+        { ECR: [] }
+      ),
     packaged: (propValue) =>
-      propValue.reduce((res, { Image }) => {
-        if (isValidECRUri(Image)) {
-          if (!res.ECR) res.ECR = [] // Initialize the destination object
-          res.ECR.push(Image) // Add the image to the list of packaged resources
-        }
-        return res
-      }, {}),
+      propValue.reduce(
+        (res, { Image }) => {
+          // Add the image to the list of packaged resources
+          if (isValidECRUri(Image)) res.ECR.push(Image)
+          return res
+        },
+        { ECR: [] }
+      ),
     update: (propValue, locations) =>
       propValue.map((def) =>
         Object.assign(

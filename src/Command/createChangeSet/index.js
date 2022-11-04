@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import {
   createSuccess as createSuccessStatuses,
@@ -26,10 +26,10 @@ import {
  * @param {Boolean} [params.quiet=false] If true, will not update status
  * @param {Number} [params.attempts=0] Keep track of attempts to avoid infinite
  * recursions
- * @return {Object} The arn of the change set and whether it contains any
- * changes
+ * @return {Promise<Object>} The arn of the change set and whether it contains
+ * any changes
  */
-async function createChangeSet({
+export default async function createChangeSet({
   region,
   templatePath,
   stackName,
@@ -40,9 +40,9 @@ async function createChangeSet({
   attempts = 0,
 }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-  if (!quiet) this.tracker.setStatus("creating change set")
+  if (!quiet) tracker.setStatus("creating change set")
   // Retrieve creation arguments
-  const args = await getChangeSetArgs.call(this, {
+  const args = await getChangeSetArgs({
     region,
     templatePath,
     stackName,
@@ -64,12 +64,12 @@ async function createChangeSet({
       err.message.startsWith("ChangeSet limit exceeded")
     ) {
       // If we reach the limit of change sets allowed for the current stack
-      this.tracker.interruptWarn(err.message)
+      tracker.interruptWarn(err.message)
       // Delete change sets
-      await deleteChangeSets.call(this, { region, stackName })
+      await deleteChangeSets({ region, stackName })
       // Try again if less than 3 attempts
       if (attempts < 3)
-        return createChangeSet.call(this, {
+        return createChangeSet({
           region,
           templatePath,
           stackName,
@@ -83,7 +83,7 @@ async function createChangeSet({
     } else throw err // Unrecognized error
   }
   // Wait for the change set to be created
-  const res = await waitForStatus.call(this, {
+  const res = await waitForStatus({
     region,
     arn: changeSetArn,
     success: createSuccessStatuses,
@@ -94,21 +94,18 @@ async function createChangeSet({
   if (res !== true) {
     // If status is not successful
     if (
-      res.includes("The submitted information didn't contain changes") ||
-      res.includes("No updates are to be performed.")
+      typeof res === "string" &&
+      (res.includes("The submitted information didn't contain changes") ||
+        res.includes("No updates are to be performed."))
     ) {
-      this.tracker.interruptInfo(`Stack is already up-to-date`)
+      tracker.interruptInfo(`Stack is already up-to-date`)
       hasChanges = false
       // Failure is expected if there are no changes
     } else {
       // If an actual error occured
-      this.tracker.interruptError(
-        `Failed to create change set for ${stackName}`
-      )
-      throw new Error(res)
+      tracker.interruptError(`Failed to create change set for ${stackName}`)
+      throw new Error(res || "")
     }
   }
   return { changeSetArn, hasChanges }
 }
-
-export default withTracker()(createChangeSet)

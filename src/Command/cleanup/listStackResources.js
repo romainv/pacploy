@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import supported from "./supported.js"
 import {
@@ -14,11 +14,15 @@ import {
  * @param {String} params.region The stack region
  * @param {String} params.stackName The name of the deployed stack
  * @param {String} [params.nextToken] The pagination token, if any
- * @return {Array} The list of resource arns
+ * @return {Promise<Array>} The list of resource arns
  */
-async function listStackResources({ region, stackName, nextToken }) {
+export default async function listStackResources({
+  region,
+  stackName,
+  nextToken,
+}) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-  this.tracker.setStatus("retrieving stack resources")
+  tracker.setStatus("retrieving stack resources")
   // Retrieve list of resources for the current stack
   const { StackResourceSummaries = [], NextToken } = await call(
     cf,
@@ -44,7 +48,7 @@ async function listStackResources({ region, stackName, nextToken }) {
         if (ResourceType === "AWS::CloudFormation::Stack") {
           // If current resource is a nested stack
           res = res.concat(
-            await listStackResources.call(this, {
+            await listStackResources({
               region,
               stackName: PhysicalResourceId,
             })
@@ -126,7 +130,7 @@ async function listStackResources({ region, stackName, nextToken }) {
   // If resources span multiple pages, recursively retrieve them
   return NextToken
     ? resources.concat(
-        await listStackResources.call(this, {
+        await listStackResources({
           region,
           stackName,
           nextToken: NextToken,
@@ -134,5 +138,3 @@ async function listStackResources({ region, stackName, nextToken }) {
       )
     : resources
 }
-
-export default withTracker()(listStackResources)

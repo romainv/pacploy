@@ -1,27 +1,23 @@
 {
-	"rules": {
-		"strict": 0,
-		"prettier/prettier": "warn"
-	},
-	"env": {
-		"node": true,
-		"es6": true,
-		"es2017": true
-	},
-	"extends": [
-		"eslint:recommended",
-		"plugin:import/recommended",
-		"prettier",
-		"plugin:jest/recommended"
-	],
-	"parserOptions": {
-		"ecmaVersion": 2020,
-		"ecmaFeatures": {
-			"jsx": true
-		}
-	},
-	"plugins": [
-		"prettier",
-		"jest"
-	]
+  "rules": {
+    "strict": 0,
+    "prettier/prettier": "warn"
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "es2017": true,
+    "jest": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/recommended",
+    "prettier",
+    "plugin:jest/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "plugins": ["prettier", "jest"]
 }

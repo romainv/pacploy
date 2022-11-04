@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import emptyBucket from "./emptyBucket.js"
 import getResourceName from "./getResourceName.js"
@@ -26,10 +26,10 @@ import { ECRClient, DeleteRepositoryCommand } from "@aws-sdk/client-ecr"
  * @param {Object} params The function parameters
  * @param {String} params.region The resource's region
  * @param {String} params.arn The arn of the resource
- * @return {Boolean|String} True if the deletion succeeded, otherwise the error
- * message, or false
+ * @return {Promise<Boolean|String>} True if the deletion succeeded, otherwise
+ * the error message, or false
  */
-async function deleteResource({ region, arn }) {
+export default async function deleteResource({ region, arn }) {
   const s3 = new S3Client({ apiVersion: "2006-03-01", region })
   const db = new DynamoDBClient({ apiVersion: "2012-08-10", region })
   const userPool = new CognitoIdentityProviderClient({
@@ -54,7 +54,7 @@ async function deleteResource({ region, arn }) {
       switch (resourceType) {
         // S3 buckets
         case "s3":
-          await emptyBucket.call(this, { bucket: resourceName })
+          await emptyBucket({ region, bucket: resourceName })
           await call(
             s3,
             s3.send,
@@ -108,9 +108,7 @@ async function deleteResource({ region, arn }) {
               // If the cognito pool was not found (this happens as the pool may
               // be deleted but not the tag, which is why we're trying to delete
               // it)
-              this.tracker.interruptInfo(
-                `user pool ${resourceName} already deleted`
-              )
+              tracker.interruptInfo(`user pool ${resourceName} already deleted`)
               return true
             } else throw err
           }
@@ -147,7 +145,7 @@ async function deleteResource({ region, arn }) {
               // If the cognito pool was not found (this happens as the pool may
               // be deleted but not the tag, which is why we're trying to delete
               // it)
-              this.tracker.interruptInfo(
+              tracker.interruptInfo(
                 `identity pool ${resourceName} already deleted`
               )
               return true
@@ -175,5 +173,3 @@ async function deleteResource({ region, arn }) {
     return err.message
   }
 }
-
-export default withTracker()(deleteResource)

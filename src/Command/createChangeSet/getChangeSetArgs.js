@@ -1,6 +1,5 @@
 import { readFileSync } from "fs"
 import { call } from "../throttle.js"
-import withTracker from "../../with-tracker/index.js"
 import { isNew as isNewStatuses } from "../statuses.js"
 import {
   CloudFormationClient,
@@ -18,9 +17,9 @@ import {
  * provided as a map with ParameterValue (String) and UsePreviousValue (Boolean)
  * or direclty a string which will be interpreted as ParameterValue
  * @param {Object} [params.stackTags] The tags to apply to the stack
- * @return {String} The arn of the change set
+ * @return {Promise<Object>} The arguments to use to create the change set
  */
-async function getChangeSetArgs({
+export default async function getChangeSetArgs({
   region,
   templatePath,
   stackName,
@@ -95,5 +94,3 @@ async function getChangeSetArgs({
     templateArg
   )
 }
-
-export default withTracker()(getChangeSetArgs)

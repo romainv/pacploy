@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import {
   CloudFormationClient,
@@ -12,11 +12,11 @@ import {
  * @param {String} params.stackName The name of the deployed stack
  * @param {Boolean} [params.quiet=true] Whether to display stack status
  */
-async function getStatus({ region, stackName, quiet = true }) {
+export default async function getStatus({ region, stackName, quiet = true }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   let status
   // Retrieve basic stack information, separating serialized values
-  this.tracker.setStatus("retrieving stack status")
+  tracker.setStatus("retrieving stack status")
   try {
     const { Stacks: [{ StackStatus }] = [] } = await call(
       cf,
@@ -30,8 +30,6 @@ async function getStatus({ region, stackName, quiet = true }) {
     else throw err
   }
   if (!quiet)
-    this.tracker.interruptInfo(`stack '${stackName}' is in status ${status}`)
+    tracker.interruptInfo(`stack '${stackName}' is in status ${status}`)
   return status
 }
-
-export default withTracker()(getStatus)

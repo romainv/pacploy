@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import errors from "../errors/index.js"
 import {
@@ -40,7 +40,7 @@ import {
  * @param {String} [params.syncPath] If provided, will sync the deployed infra
  * locally
  */
-async function deploy({
+export default async function deploy({
   region,
   stackName,
   deployBucket,
@@ -60,12 +60,12 @@ async function deploy({
   if (typeof stackTags === "string") stackTags = JSON.parse(stackTags)
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Validate template
-  if ((await validate.call(this, { region, templatePath })) !== true) {
+  if ((await validate({ region, templatePath })) !== true) {
     process.exitCode = 1
     return
   }
   // Prepare stack for deployment
-  const stackStatus = await prepare.call(this, {
+  const stackStatus = await prepare({
     region,
     stackName,
     forceDelete,
@@ -76,7 +76,7 @@ async function deploy({
     return false
   }
   // Package and upload template to S3
-  const templateURL = await pkg.call(this, {
+  const templateURL = await pkg({
     region,
     templatePath,
     deployBucket,
@@ -86,7 +86,7 @@ async function deploy({
     stackTags,
   })
   // Create root change set
-  const { changeSetArn, hasChanges } = await createChangeSet.call(this, {
+  const { changeSetArn, hasChanges } = await createChangeSet({
     region,
     templatePath: templateURL,
     stackName,
@@ -101,7 +101,7 @@ async function deploy({
       cf.send,
       new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
     )
-    const deployStatus = await waitForStatus.call(this, {
+    const deployStatus = await waitForStatus({
       region,
       arn: stackName,
       success: deploySuccessStatuses,
@@ -110,17 +110,17 @@ async function deploy({
     })
     if (deployStatus === true) {
       // If deployment succeeded
-      this.tracker.interruptSuccess(`Successfully deployed stack ${stackName}`)
+      tracker.interruptSuccess(`Successfully deployed stack ${stackName}`)
     } else {
       // If deployment failed
-      this.tracker.interruptError(`Failed to deploy stack ${stackName}`)
-      await errors.call(this, { region, stackName })
+      tracker.interruptError(`Failed to deploy stack ${stackName}`)
+      await errors({ region, stackName })
       process.exitCode = 1
       return false
     }
   }
   // Cleanup retained resources
-  await cleanup.call(this, {
+  await cleanup({
     region,
     stackName,
     forceDelete,
@@ -130,10 +130,8 @@ async function deploy({
   })
   // Sync deployed infra if needed
   const outputs = syncPath
-    ? await sync.call(this, { region, stackName, syncPath })
-    : await getStackOutputs.call(this, { region, stackName })
+    ? await sync({ region, stackName, syncPath })
+    : await getStackOutputs({ region, stackName })
   // Pass along stack outputs
   return outputs
 }
-
-export default withTracker()(deploy)

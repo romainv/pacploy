@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { call } from "../throttle.js"
 import { createReadStream, writeSync } from "fs"
 import { extname, join } from "path"
@@ -26,9 +25,9 @@ import { Upload } from "@aws-sdk/lib-storage"
  * file even if it was not updated since last upload
  * @param {Object} [params.stackTags] The stack tags to be applied to packaged
  * files as well
- * @return {Object} The S3 file URI and upload status
+ * @return {Promise<Object>} The S3 file URI and upload status
  */
-async function packageFileToS3(
+export default async function packageFileToS3(
   file,
   { region, deployBucket, dependencies, forceUpload = false, stackTags = {} }
 ) {
@@ -48,7 +47,7 @@ async function packageFileToS3(
     writeSync(tmpFile.fd, content) // Save file content
   } else if (isDir(file.path))
     // If current file is a directory, zip it and point to the zip instead
-    file.path = await zip.call(this, {
+    file.path = await zip({
       zipTo: `${tmp.tmpNameSync()}.zip`,
       dir: file.path,
       bundleDir:
@@ -72,7 +71,8 @@ async function packageFileToS3(
     exists = true
     status = "exists"
   } catch (err) {
-    if (err.code !== "NotFound") throw err // Throw unexpected errors
+    // Throw unexpected errors
+    if (err.$metadata?.httpStatusCode !== 404) throw err
   }
   if (forceUpload || !exists) {
     // If object doesn't exist yet, or upload was forced: upload it
@@ -105,5 +105,3 @@ async function packageFileToS3(
     hash,
   }
 }
-
-export default withTracker()(packageFileToS3)

@@ -3,11 +3,10 @@ import archiver from "archiver"
 
 /**
  * Zip a list of files
- * @param {Object} params Function parameters
- * @param {String} params.zipTo The path to the zip file
- * @param {Map} params.files A mapping of the full paths of files to zip in the
- * @param {String} params.format The archive format to use ('zip' or 'tar')
- * @param {Object} [params.options] The zip or tar options
+ * @param {String} zipTo The path to the zip file
+ * @param {Map} files A mapping of the full paths of files to zip in the
+ * @param {archiver.Format} format The archive format to use ('zip' or 'tar')
+ * @param {Object} [options] The zip or tar options
  * filesystem with their path in the archive
  */
 export default async function zipFiles(zipTo, files, format, options) {

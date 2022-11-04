@@ -1,25 +1,41 @@
-import withTracker from "../../with-tracker/index.js"
 import packageFileToS3 from "./packageFileToS3.js"
 import packageFileToECR from "./packageFileToECR.js"
 import packageFileInline from "./packageFileInline.js"
 
 /**
  * Package a local file to S3 if necessary
- * @param {Object} params Function parameters: see packageFileToS3 and packageFileToECR
+ * @param {Object} params Function parameters: see dedicated functions
  * @param {File} params.file The file to package
- * @return {Object} The location of the file and upload status
+ * @param {String} params.region The bucket's region
+ * @param {String} params.deployBucket A S3 bucket name to package resources
+ * @param {String} params.deployEcr An ECR repo URI to package docker images
+ * @param {Object} params.dependencies The list of packaged files that the
+ * current file depends on
+ * @param {Boolean} [params.forceUpload=false] If true, will re-upload
+ * file even if it was not updated since last upload
+ * @return {Promise<Object>} The location of the file and upload status
  */
-async function packageFile({ file, ...params }) {
+export default async function packageFile({
+  file,
+  region,
+  deployBucket,
+  deployEcr,
+  dependencies,
+  forceUpload,
+}) {
   if (file.packageTo === "S3")
-    return await packageFileToS3.call(this, file, params)
+    return await packageFileToS3(file, {
+      region,
+      deployBucket,
+      dependencies,
+      forceUpload,
+    })
   else if (file.packageTo === "ECR")
-    return await packageFileToECR.call(this, file, params)
+    return await packageFileToECR(file, { region, deployEcr, forceUpload })
   else if (file.packageTo === "INLINE")
-    return await packageFileInline.call(this, file, params)
+    return await packageFileInline(file, { forceUpload })
   else
     throw new Error(
       `Unable to determine where file '${file.path}' should be packaged (packageTo='${file.packageTo}')`
     )
 }
-
-export default withTracker()(packageFile)

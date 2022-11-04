@@ -2,7 +2,6 @@ import { join } from "path"
 import { existsSync, unlinkSync } from "fs"
 import getFilesToZip from "./getFilesToZip.js"
 import zipFiles from "./zipFiles.js"
-import withTracker from "../../with-tracker/index.js"
 import getArchiveBasename from "./getArchiveBasename.js"
 
 /**
@@ -19,11 +18,11 @@ import getArchiveBasename from "./getArchiveBasename.js"
  * params.dir should be provided
  * @param {String} [params.zipTo] The destination path of the zip file. If
  * omitted, will generate one from the package dir
- * @param {String} [format="zip"] The archive format to use ('zip' or 'tar')
- * @param {Object} [options] The zip or tar options
- * @return {String} The path to the zipped file
+ * @param {String} [params.format="zip"] The archive format to use ('zip' or 'tar')
+ * @param {Object} [params.options] The zip or tar options
+ * @return {Promise<String>} The path to the zipped file
  */
-async function zip({
+export default async function zip({
   dir,
   bundleDir = "node_modules",
   files,
@@ -44,5 +43,3 @@ async function zip({
   // Return the path to the zip file
   return zipTo
 }
-
-export default withTracker()(zip)

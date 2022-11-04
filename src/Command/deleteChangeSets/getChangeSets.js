@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { call } from "../throttle.js"
 import {
   CloudFormationClient,
@@ -10,13 +9,13 @@ import {
  * @param {Object} params The function parameters
  * @param {String} params.region The stack's region
  * @param {String} params.stackName The name of the deployed stack
- * @param {String} params.nextToken In case change sets are listed over
+ * @param {String} [params.nextToken] In case change sets are listed over
  * multiple pages
  * @param {Array} [params.changeSets] The full list of change sets accumulated
  * over multiple pages
- * @return {Array} The list of change set summaries
+ * @return {Promise<Array>} The list of change set summaries
  */
-async function getChangeSets({
+export default async function getChangeSets({
   region,
   stackName,
   nextToken,
@@ -36,7 +35,7 @@ async function getChangeSets({
   changeSets = changeSets.concat(Summaries)
   // Update the next token
   return NextToken
-    ? getChangeSets.call(this, {
+    ? getChangeSets({
         region,
         stackName,
         nextToken: NextToken,
@@ -44,5 +43,3 @@ async function getChangeSets({
       })
     : changeSets
 }
-
-export default withTracker()(getChangeSets)

@@ -11,8 +11,10 @@ import { stat } from "fs"
  * @param {Set} [params.ignore] A list of files to ignore
  * @param {String} [params.cwd] The directory relative to which patterns apply
  * @param {Boolean} [params.absolute=false] Whether to return absolute paths
- * @param {Object} [...params] Other parameters will be passed as glob options
- * @return {Set} The list of distinct relative paths to the matching files
+ * @param {Boolean} [params.nodir] Do not match directories, only files
+ * @param {Boolean} [params.realpath] Convert symlinks to their target path
+ * @return {Promise<Set>} The list of distinct relative paths to the matching
+ * files
  */
 export default async function getFilesMatching(
   patterns,

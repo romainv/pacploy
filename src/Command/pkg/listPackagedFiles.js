@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
 import parseRemoteTemplate from "./parseRemoteTemplate.js"
@@ -18,9 +17,13 @@ import md5 from "./md5.js"
  * template was packaged. This is only used for the root template, all other
  * resources will include the reference to the bucket to which they were
  * packaged
- * @return {Array} The {Bucket, Key} of packaged files
+ * @return {Promise<Array>} The {Bucket, Key} of packaged files
  */
-async function listPackagedFiles({ region, stackName, deployBucket }) {
+export default async function listPackagedFiles({
+  region,
+  stackName,
+  deployBucket,
+}) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   const packaged = []
   // Retrieve the template of the provided stack
@@ -50,7 +53,7 @@ async function listPackagedFiles({ region, stackName, deployBucket }) {
     })
   }
   // Recursively retrieve the template's packaged resources
-  await parseRemoteTemplate.call(this, {
+  await parseRemoteTemplate({
     region,
     templateBody: TemplateBody,
     fn: ({ resourceType, propName, propValue }) => {
@@ -77,5 +80,3 @@ async function listPackagedFiles({ region, stackName, deployBucket }) {
   })
   return packaged
 }
-
-export default withTracker()(listPackagedFiles)

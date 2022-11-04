@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import { call } from "../throttle.js"
 import {
   CloudFormationClient,
@@ -18,10 +18,10 @@ import {
  * @param {String} [params.msg="checking status"] The message to display while
  * waiting for the status. Current status will be appended. If falsy, will not
  * update status
- * @return {Boolean|String} True if the status is part of the success values,
- * otherwise the status reason for the failure
+ * @return {Promise<Boolean|String>} True if the status is part of the success
+ * values, otherwise the status reason for the failure
  */
-async function waitForStatus({
+export default async function waitForStatus({
   region,
   arn,
   success,
@@ -47,16 +47,16 @@ async function waitForStatus({
       } else {
         // Retrieve status of a stack
         ;({
-          Stacks: [
-            { StackStatus: status, StackStatusReason: statusReason },
-          ] = [],
+          Stacks: [{ StackStatus: status, StackStatusReason: statusReason }] = [
+            { StackStatus: undefined, StackStatusReason: undefined },
+          ],
         } = await call(
           cf,
           cf.send,
           new DescribeStacksCommand({ StackName: arn })
         ))
       }
-      if (msg) this.tracker.setStatus(`${msg} (${status})`)
+      if (msg) tracker.setStatus(`${msg} (${status})`)
       // If we're about to go over the ticks budget, add some more
       // Wait until next check
       await new Promise((res) => setTimeout(res, 1000))
@@ -66,9 +66,7 @@ async function waitForStatus({
     )
     return success.includes(status) ? true : statusReason || status || ""
   } catch (err) {
-    this.tracker.interruptError(err.message)
+    tracker.interruptError(err.message)
     return err.message
   }
 }
-
-export default withTracker()(waitForStatus)

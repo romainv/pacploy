@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import {
   stable as stableStatuses,
   needsDelete as needsDeleteStatuses,
@@ -14,14 +14,18 @@ import waitForStatus from "../waitForStatus/index.js"
  * @param {String} [params.stackName] The name of the deployed stack
  * @param {Boolean} [params.forceDelete=false] If true, will not ask for
  * confirmation to delete the stack and associated resources if needed
- * @return {String} The prepared stack status
+ * @return {Promise<String>} The prepared stack status
  */
-async function prepare({ region, stackName, forceDelete = false }) {
+export default async function prepare({
+  region,
+  stackName,
+  forceDelete = false,
+}) {
   // Check current stack status
-  let status = await getStatus.call(this, { region, stackName })
+  let status = await getStatus({ region, stackName })
   if (!stableStatuses.includes(status))
     // Wait for stack to be in a stable status
-    await waitForStatus.call(this, {
+    await waitForStatus({
       region,
       arn: stackName,
       success: stableStatuses,
@@ -29,18 +33,16 @@ async function prepare({ region, stackName, forceDelete = false }) {
   if (needsDeleteStatuses.includes(status)) {
     if (!forceDelete)
       // Information on the delete prompt
-      this.tracker.interruptWarn(
+      tracker.interruptWarn(
         [
           `Stack is in status ${status}`,
           `and needs to be deleted before attempting to create it again`,
         ].join(" ")
       )
     // Delete stack
-    await del.call(this, { region, stackName, forceDelete })
+    await del({ region, stackName, forceDelete })
     // Update status
-    status = await getStatus.call(this, { region, stackName })
+    status = await getStatus({ region, stackName })
   }
   return status
 }
-
-export default withTracker()(prepare)
