@@ -109,6 +109,11 @@ export default async function listStackResources({
                   `arn:aws:athena:${region}:${accountId}:workgroup/${PhysicalResourceId}`
                 )
                 break
+              case "AWS::ECR::Repository":
+                res.push(
+                  `arn:aws:ecr:${region}:${accountId}:repository/${PhysicalResourceId}`
+                )
+                break
               default:
                 if (PhysicalResourceId.startsWith("arn"))
                   // If resource id is already in arn format
