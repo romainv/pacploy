@@ -18,7 +18,6 @@ export default class File {
    * @param {Array<String>} [attrs.dependsOn] A list of file paths which the
    * current file depends on (e.g. a local template with resource(s) which
    * reference local files)
-   * @return {File} A class instance
    */
   constructor(
     path,
@@ -28,7 +27,13 @@ export default class File {
       packageTo,
       status = "pending",
       dependsOn = [],
-    } = {}
+    } = {
+      resourceType: undefined,
+      propName: undefined,
+      packageTo: undefined,
+      status: undefined,
+      dependsOn: undefined,
+    }
   ) {
     this.path = path
     this.originalPath = path // Keep track as file path may be changed
@@ -38,6 +43,6 @@ export default class File {
     this.dependsOn = dependsOn
     if (!["S3", "ECR", "INLINE"].includes(packageTo))
       throw new Error(`Unexpected 'packageTo' value: ${packageTo}`)
-    else this.packageTo = packageTo
+    this.packageTo = packageTo
   }
 }

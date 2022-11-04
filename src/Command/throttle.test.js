@@ -11,6 +11,7 @@ describe("throttle", () => {
     const intervalMs = 2000 // Rate interval
     // Set the rate limit for tests (5 requests/2sec)
     setRate(5, intervalMs)
+
     // Run tests synchronously as the queue is shared
     let attempted = [] // Will contain all attempted requests
     let executed = 0 // Keep track of how many requests were executed
@@ -18,6 +19,7 @@ describe("throttle", () => {
     // Create test throttled functions
     const throttled1 = throttle(() => executed++)
     const throttled2 = throttle(() => executed++)
+
     // Attempt to run a throttled function every 50ms for 1sec (20 times)
     test1 = new Promise((res) => {
       const interval = setInterval(() => {
@@ -30,11 +32,13 @@ describe("throttle", () => {
         }
       }, 50)
     })
+
     // Wait for test1 queue to clear
     test2 = test1.then(async () => {
       await Promise.all(attempted)
       return { attempted: attempted.length, executed, aborted }
     })
+
     // Attempt to run 2 throttled functions every 50ms for 1sec (20 times)
     test3 = test2.then(async () => {
       // Wait for queue to be out of throttle limit
@@ -60,6 +64,7 @@ describe("throttle", () => {
       })
       return { attempted: attempted.length, executed, aborted }
     })
+
     // Abort the rest of the queue
     test4 = test3.then(async () => {
       abort()
@@ -92,5 +97,28 @@ describe("throttle", () => {
       executed: 5,
       aborted: 35,
     })
+  })
+})
+
+describe("throttle.call", () => {
+  let call
+  beforeAll(async () => {
+    // Reset throttle module to avoid interference with other tests
+    jest.resetModules()
+    ;({ call } = await import("./throttle.js"))
+  })
+
+  test("preserves context", async () => {
+    class Dummy {
+      constructor() {
+        this.foo = "bar"
+      }
+      fn() {
+        return this.foo
+      }
+    }
+    const dummy = new Dummy()
+    expect(dummy.fn()).toEqual("bar")
+    expect(await call(dummy, dummy.fn)).toEqual("bar")
   })
 })

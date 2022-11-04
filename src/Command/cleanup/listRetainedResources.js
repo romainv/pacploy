@@ -1,6 +1,9 @@
-import withTracker from "../../with-tracker/index.js"
+import { call } from "../throttle.js"
 import supported from "./supported.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  ResourceGroupsTaggingAPIClient,
+  GetResourcesCommand,
+} from "@aws-sdk/client-resource-groups-tagging-api"
 
 /**
  * Retrieve remaining resources based on their tags. This allows to identify
@@ -15,23 +18,27 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {String} params.stackName The name of the deployed stack
  * @param {Array} [params.exclude] A list of resource ARNs to exclude
  * @param {String} [params.nextToken] The pagination token, if any
- * @return {Array} The list of remaining resource ARNs
+ * @return {Promise<Array>} The list of remaining resource ARNs
  */
-async function listRetainedResources({
+export default async function listRetainedResources({
   region,
   stackName,
   exclude = [],
   nextToken,
 }) {
-  const rg = new AWS.ResourceGroupsTaggingAPI({
+  const rg = new ResourceGroupsTaggingAPIClient({
     apiVersion: "2017-01-26",
     region,
   })
   // Retrieve list of resources with the matching RootStackName tag
-  const { ResourceTagMappingList, PaginationToken } = await rg.getResources({
-    PaginationToken: nextToken,
-    TagFilters: [{ Key: "RootStackName", Values: [stackName] }],
-  })
+  const { ResourceTagMappingList = [], PaginationToken } = await call(
+    rg,
+    rg.send,
+    new GetResourcesCommand({
+      PaginationToken: nextToken,
+      TagFilters: [{ Key: "RootStackName", Values: [stackName] }],
+    })
+  )
   // Extract resources ARN
   const resources = ResourceTagMappingList.map(
     ({ ResourceARN }) => ResourceARN
@@ -45,7 +52,7 @@ async function listRetainedResources({
   // If resources span multiple pages, recursively retrieve them
   return PaginationToken
     ? resources.concat(
-        await listRetainedResources.call(this, {
+        await listRetainedResources({
           region,
           stackName,
           nextToken: PaginationToken,
@@ -54,5 +61,3 @@ async function listRetainedResources({
       )
     : resources
 }
-
-export default withTracker()(listRetainedResources)

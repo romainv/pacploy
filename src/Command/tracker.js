@@ -1,18 +1,17 @@
-import BaseProgressBar from "progress"
+import ProgressBar from "progress"
 import colors from "ansi-colors" // Dependency of enquirer
 import Enquirer from "enquirer"
 
 /**
  * Add new features and customisations to the default ProgressBar
  */
-export default class ProgressBar extends BaseProgressBar {
+export class Tracker extends ProgressBar {
   /**
    * Instantiate a new progress bar
    * @param {String | Number} fmt If a string is provided, it will be used to
    * customize the progress bar format. If a number is provided, it will be
    * used as the progress bar total
    * @param {Object} [options] ProgressBar options to override the defaults
-   * @return {ProgressBar} A class instance
    */
   constructor(fmt, options = {}) {
     // Defaults
@@ -33,6 +32,21 @@ export default class ProgressBar extends BaseProgressBar {
     else throw new Error(`Unsupported type for fmt: ${fmt}`)
     // Initialize the tokens cache
     this._tokens = { status: "", spinner: "" }
+  }
+
+  /**
+   * Start tracking
+   */
+  begin() {
+    this.tick(0)
+    this.show()
+  }
+
+  /**
+   * Complete the remaining ticks so they match the total
+   */
+  end() {
+    this.tick(this.total - this.curr)
   }
 
   /**
@@ -182,6 +196,8 @@ export default class ProgressBar extends BaseProgressBar {
 
   /**
    * Prompt for user input (see enquirer)
+   * @param {...Object} args Arguments to pass to underlying Enquirer.prompt
+   * @return {Promise<Object>} The selected values according to passed args
    */
   async prompt(...args) {
     this.hide()
@@ -193,7 +209,7 @@ export default class ProgressBar extends BaseProgressBar {
   /**
    * Ask for user to confirm by yes or no
    * @param {String} message The question user has to confirm
-   * @return {Boolean} True if user confirmed, false otherwise
+   * @return {Promise<Boolean>} True if user confirmed, false otherwise
    */
   async confirm(message) {
     this.hide()
@@ -203,3 +219,8 @@ export default class ProgressBar extends BaseProgressBar {
     return confirmation
   }
 }
+
+// Customize the progress bar (removes the actual bar and keep only the
+// spinner as most operations don't have a predictable completion)
+const tracker = new Tracker(":spinner :status", { total: 1 })
+export default tracker

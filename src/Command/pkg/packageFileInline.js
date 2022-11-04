@@ -1,4 +1,3 @@
-import withTracker from "../../with-tracker/index.js"
 import { copyFile, existsSync } from "fs"
 import { extname, join } from "path"
 import md5 from "./md5.js"
@@ -10,9 +9,9 @@ import tmp from "tmp"
  * @param {Object} params Additional function parameters
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * file even if it was not updated since last upload
- * @return {Object} The S3 file URI and upload status
+ * @return {Promise<Object>} The S3 file URI and upload status
  */
-async function packageFileInline(file, { forceUpload = false }) {
+export default async function packageFileInline(file, { forceUpload = false }) {
   // Retrieve content md5 hash
   const hash = await md5(file.path)
   // Check if object already exists
@@ -32,5 +31,3 @@ async function packageFileInline(file, { forceUpload = false }) {
     hash,
   }
 }
-
-export default withTracker()(packageFileInline)

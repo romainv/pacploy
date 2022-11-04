@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import { call } from "../throttle.js"
 import Docker from "dockerode"
 import zip from "../zip/index.js"
 import { findUp } from "find-up"
@@ -7,7 +7,7 @@ import tmp from "tmp"
 import isDir from "./isDir.js"
 import getArchiveBasename from "../zip/getArchiveBasename.js"
 import { URL } from "url"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { ECRClient, GetAuthorizationTokenCommand } from "@aws-sdk/client-ecr"
 import { readFileSync, existsSync } from "fs"
 
 const docker = new Docker()
@@ -20,9 +20,9 @@ const docker = new Docker()
  * @param {String} params.deployEcr An ECR repo URI to package docker images
  * @param {Boolean} [params.forceUpload=false] If true, will re-upload
  * file even if it was not updated since last upload
- * @return {Object} The image URI and upload status
+ * @return {Promise<Object>} The image URI and upload status
  */
-async function packageFileToECR(
+export default async function packageFileToECR(
   file,
   { region, deployEcr, forceUpload = false }
 ) {
@@ -57,7 +57,7 @@ async function packageFileToECR(
   // Build an archive with the image context
   if (isDir(file.path))
     // If file points to a directory, create a tarball from it
-    file.path = await zip.call(this, {
+    file.path = await zip({
       zipTo: `${tmp.tmpNameSync()}.tar`,
       dir: file.path,
       format: "tar",
@@ -65,7 +65,7 @@ async function packageFileToECR(
   else if (!/.*\.(tgz$)|(tar$)|(tar\.gz$)/i.test(file.path))
     // If file points to a dockerfile (assumes any file which is not a tarball
     // is a dockerfile), create an archive with this file at the root
-    file.path = await zip.call(this, {
+    file.path = await zip({
       zipTo: tmp.tmpNameSync(),
       files: new Map([[file.path, basename(file.path)]]),
       format: "tar",
@@ -80,7 +80,7 @@ async function packageFileToECR(
   // been updated)
   const image = docker.getImage(imageName)
   let pushStream = await image.push({
-    authconfig: await getToken.call(this, region),
+    authconfig: await getToken(region),
   })
   const logs = await waitFor(pushStream)
   // Retrieve the image digest from the latest log entry
@@ -106,18 +106,23 @@ async function packageFileToECR(
   }
 }
 
-export default withTracker()(packageFileToECR)
-
 /*
  * Retrieve the auth parameters to authenticate calls to ECR
  * @param {String} region The AWS region
  * @return {Object} The auth parameters
  */
 async function getToken(region) {
-  const ecr = new AWS.ECR({ apiVersion: "2015-09-21", region })
-  const {
-    authorizationData: [{ authorizationToken, proxyEndpoint }],
-  } = await ecr.getAuthorizationToken()
+  const ecr = new ECRClient({ apiVersion: "2015-09-21", region })
+  const { authorizationData: [{ authorizationToken, proxyEndpoint }] = [] } =
+    await call(
+      ecr,
+      ecr.send,
+      // FIXME: We use a dummy registryId as the SDK throws an error if
+      // registryIds is not passed (it tries to read properties of undefined).
+      // A future update may make passing registryIds optional again, as it
+      // seems that the permissions are not impacted
+      new GetAuthorizationTokenCommand({ registryIds: ["000000000000"] })
+    )
   const [username, password] = Buffer.from(authorizationToken, "base64")
     .toString()
     .split(":")
@@ -131,7 +136,7 @@ async function getToken(region) {
 /**
  * Wait for a dockerode stream to finish
  * @param {Object} stream The stream to wait for
- * @return {Array} The log messages
+ * @return {Promise<Array>} The log messages
  */
 function waitFor(stream) {
   return new Promise((resolve, reject) => {

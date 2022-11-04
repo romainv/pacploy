@@ -1,7 +1,10 @@
 import { readFileSync } from "fs"
-import withTracker from "../../with-tracker/index.js"
+import { call } from "../throttle.js"
 import { isNew as isNewStatuses } from "../statuses.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  GetTemplateSummaryCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Generate valid arguments to provide to the change set creation request
@@ -14,9 +17,9 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * provided as a map with ParameterValue (String) and UsePreviousValue (Boolean)
  * or direclty a string which will be interpreted as ParameterValue
  * @param {Object} [params.stackTags] The tags to apply to the stack
- * @return {String} The arn of the change set
+ * @return {Promise<Object>} The arguments to use to create the change set
  */
-async function getChangeSetArgs({
+export default async function getChangeSetArgs({
   region,
   templatePath,
   stackName,
@@ -24,17 +27,17 @@ async function getChangeSetArgs({
   stackParameters = {},
   stackTags = {},
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Convert templatePath to a Cloudformation argument
   const templateArg = templatePath.startsWith("http")
     ? { TemplateURL: templatePath }
     : { TemplateBody: readFileSync(templatePath, "utf8") }
   // Retrieving required capabilities and parameters
   const {
-    Capabilities,
-    Parameters: requiredParameters,
-    DeclaredTransforms,
-  } = await cf.getTemplateSummary(templateArg)
+    Capabilities = [],
+    Parameters: requiredParameters = [],
+    DeclaredTransforms = [],
+  } = await call(cf, cf.send, new GetTemplateSummaryCommand(templateArg))
   // Adjust capabilities when using macros as they're missing
   if (DeclaredTransforms.length > 0) {
     if (!Capabilities.includes("CAPABILITY_AUTO_EXPAND"))
@@ -91,5 +94,3 @@ async function getChangeSetArgs({
     templateArg
   )
 }
-
-export default withTracker()(getChangeSetArgs)

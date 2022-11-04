@@ -16,10 +16,10 @@ const require = createRequire(import.meta.url)
 /**
  * Collect the list of files to add to the zip archive
  * @param {String} dir The path to the root folder containing the files
- * @param {String} [params.bundleDir="node_modules"] The parent folder under
+ * @param {String} [bundleDir="node_modules"] The parent folder under
  * which bundled dependencies should be added in the archive
- * @return {Map} A mapping of the full paths of files in the filesystem with
- * their path in the archive
+ * @return {Promise<Map>} A mapping of the full paths of files in the
+ * filesystem with their path in the archive
  */
 export default async function getFilesToZip(dir, bundleDir) {
   const files = new Map() // Will contain the list of files to bundle
@@ -35,7 +35,14 @@ export default async function getFilesToZip(dir, bundleDir) {
     ignore: ignorePatterns, // Paths to ignore
   } = existsSync(packagePath)
     ? JSON.parse(readFileSync(packagePath, "utf-8") || "{}")
-    : {}
+    : {
+        main: undefined,
+        files: undefined,
+        root: undefined,
+        bundleDependencies: undefined,
+        bundledDependencies: undefined,
+        ignore: undefined,
+      }
   if (bundleDependencies.length)
     // Support for both spelling, giving priority to bundleDependencies
     bundledDependencies = bundleDependencies
@@ -125,7 +132,7 @@ export default async function getFilesToZip(dir, bundleDir) {
 /**
  * Read glob patterns from a file
  * @param {String} file The path to the file
- * @return {Array} The glob patterns
+ * @return {Promise<Array>} The glob patterns
  */
 async function readGlobPatterns(file) {
   return await new Promise((res, rej) =>

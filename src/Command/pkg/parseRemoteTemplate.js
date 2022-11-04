@@ -1,7 +1,7 @@
 import { yamlParse } from "yaml-cfn"
-import withTracker from "../../with-tracker/index.js"
+import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
 
 /**
  * Recursively parse a remote template's resource properties and execute a
@@ -11,8 +11,12 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {String} params.templateBody The template body to parse
  * @param {Function} params.fn The synchronous function to execute (see parseTemplate)
  */
-async function parseRemoteTemplate({ region, templateBody, fn }) {
-  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
+export default async function parseRemoteTemplate({
+  region,
+  templateBody,
+  fn,
+}) {
+  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
   // Parse the template depending on its format
   const template = yamlParse(templateBody)
   // Recursively package the properties of the template resources
@@ -35,12 +39,16 @@ async function parseRemoteTemplate({ region, templateBody, fn }) {
                 propName,
                 propValue
               )
-              const { Body } = await s3.getObject({
-                Bucket: resourceProp.Bucket,
-                Key: resourceProp.Key,
-              })
+              const { Body } = await call(
+                s3,
+                s3.send,
+                new GetObjectCommand({
+                  Bucket: resourceProp.Bucket,
+                  Key: resourceProp.Key,
+                })
+              )
               // Recursively parse it
-              await parseRemoteTemplate.call(this, {
+              await parseRemoteTemplate({
                 region,
                 templateBody: Body.toString("utf-8"),
                 fn,
@@ -57,5 +65,3 @@ async function parseRemoteTemplate({ region, templateBody, fn }) {
     )
   )
 }
-
-export default withTracker()(parseRemoteTemplate)

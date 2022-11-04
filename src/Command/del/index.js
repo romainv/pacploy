@@ -1,4 +1,5 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
+import { call } from "../throttle.js"
 import {
   deleteSuccess as deleteSuccessStatuses,
   deleteFailed as deleteFailedStatuses,
@@ -6,7 +7,11 @@ import {
 import getStatus from "../getStatus/index.js"
 import waitForStatus from "../waitForStatus/index.js"
 import cleanup from "../cleanup/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+  DeleteStackCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Delete a stack and its retained resources
@@ -15,42 +20,42 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {String} params.stackName The name of the deployed stack
  * @param {Boolean} [params.forceDelete=false] If true, will not ask for
  * confirmation before deleting the stack and associated resources
- * @return {String} The stack status after attempting to delete it
+ * @return {Promise<String>} The stack status after attempting to delete it
  */
-async function del({ region, stackName, forceDelete }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+export default async function del({ region, stackName, forceDelete }) {
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Check if stack exists
-  const stackStatus = await getStatus.call(this, { region, stackName })
+  const stackStatus = await getStatus({ region, stackName })
   // Ask user confirmation
-  if (
-    !forceDelete &&
-    !(await this.tracker.confirm(`Delete stack ${stackName}?`))
-  )
+  if (!forceDelete && !(await tracker.confirm(`Delete stack ${stackName}?`)))
     return
   // Retrieving stackId to identify the stack after it's been deleted
-  this.tracker.setStatus("retrieving stack id")
+  tracker.setStatus("retrieving stack id")
   let stackId, success1
   if (stackStatus !== "NEW") {
-    ;({
-      Stacks: [{ StackId: stackId }],
-    } = await cf.describeStacks({ StackName: stackName }))
+    ;({ Stacks: [{ StackId: stackId } = { StackId: undefined }] = [] } =
+      await call(
+        cf,
+        cf.send,
+        new DescribeStacksCommand({ StackName: stackName })
+      ))
     // Attempt to delete the stack if it exists
-    if (await _del.call(this, { region, stackId })) {
+    if (await _del({ region, stackId })) {
       success1 = true
-      this.tracker.interruptSuccess(`Deleted stack ${stackName}`)
+      tracker.interruptSuccess(`Deleted stack ${stackName}`)
     }
   }
   // Delete retained resources if any
-  await cleanup.call(this, { region, stackName, forceDelete })
+  await cleanup({ region, stackName, forceDelete })
   if (!success1 && stackStatus !== "NEW") {
     // If deletion failed earlier, try again now that retained resources have
     // been processed
-    if (await _del.call(this, { region, stackId }))
-      this.tracker.interruptSuccess(`Deleted stack ${stackName}`)
-    else this.tracker.interruptError(`Failed to delete stack ${stackName}`)
+    if (await _del({ region, stackId }))
+      tracker.interruptSuccess(`Deleted stack ${stackName}`)
+    else tracker.interruptError(`Failed to delete stack ${stackName}`)
   }
   // Return the latest stack status
-  return await getStatus.call(this, { region, stackName })
+  return await getStatus({ region, stackName })
 }
 
 /**
@@ -60,12 +65,12 @@ async function del({ region, stackName, forceDelete }) {
  * @param {Object} params Function parameters
  * @param {String} params.region The stack's region
  * @param {String} params.stackId The stack Id
- * @return {Boolean} Whether the deletion succeeded
+ * @return {Promise<Boolean>} Whether the deletion succeeded
  */
 async function _del({ region, stackId }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
-  await cf.deleteStack({ StackName: stackId })
-  const res = await waitForStatus.call(this, {
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  await call(cf, cf.send, new DeleteStackCommand({ StackName: stackId }))
+  const res = await waitForStatus({
     region,
     arn: stackId,
     success: deleteSuccessStatuses,
@@ -74,5 +79,3 @@ async function _del({ region, stackId }) {
   })
   return res === true ? res : false
 }
-
-export default withTracker()(del)

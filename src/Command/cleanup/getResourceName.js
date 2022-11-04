@@ -1,7 +1,7 @@
 /**
  * Extract the resource name from its arn
  * @param {String} arn The resource arn
- * @return {String} The resource name
+ * @return {String|Boolean} The resource name
  */
 export default function getResourceName(arn) {
   let destruct

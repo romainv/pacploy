@@ -1,5 +1,5 @@
+import tracker from "../tracker.js"
 import getFilesToPackage from "./getFilesToPackage.js"
-import withTracker from "../../with-tracker/index.js"
 import packageFiles from "./packageFiles.js"
 import zip from "../zip/index.js"
 import tmp from "tmp"
@@ -22,9 +22,9 @@ import { writeSync } from "fs"
  * parameters will be added to the zip file in the format expected by AWS
  * @param {Object} [params.stackTags] If zipTo is set, the stack tags will be
  * added to the zip file in the format expected by AWS
- * @return {String} The URL of the packaged template
+ * @return {Promise<String>} The URL of the packaged template
  */
-async function pkg({
+export default async function pkg({
   region,
   templatePath,
   deployBucket,
@@ -35,15 +35,15 @@ async function pkg({
   stackTags = {},
 }) {
   // Collect the files that need to be packaged and their dependencies
-  this.tracker.setStatus("retrieving files to package")
+  tracker.setStatus("retrieving files to package")
   const toPackage = getFilesToPackage(templatePath)
   let packagedTemplatePath = templatePath // Will point to the packaged template
   let packagedFiles // Will contain packaged files info, if any
   if (Object.keys(toPackage).length > 0) {
     // If there are any files to package
-    this.tracker.setStatus(`packaging ${Object.keys(toPackage).length} files`)
+    tracker.setStatus(`packaging ${Object.keys(toPackage).length} files`)
     // Package local files if they have been updated since last upload
-    packagedFiles = await packageFiles.call(this, {
+    packagedFiles = await packageFiles({
       region,
       toPackage,
       deployBucket,
@@ -63,11 +63,11 @@ async function pkg({
       ).length
       const totalCount = Object.keys(packagedFiles).length
       if (newCount > 0)
-        this.tracker.interruptSuccess(
+        tracker.interruptSuccess(
           `${newCount} new files packaged (${totalCount} in total)`
         )
       else
-        this.tracker.interruptInfo(
+        tracker.interruptInfo(
           `No new files to package (${totalCount} in total)`
         )
     }
@@ -91,9 +91,7 @@ async function pkg({
     writeSync(tmpFile.fd, JSON.stringify(config, null, 2))
     files.set(tmpFile.name, "config.json") // Filename matches CodePipeline
     // Build the zip archive
-    await zip.call(this, { zipTo, files })
+    await zip({ zipTo, files })
   }
   return packagedTemplatePath
 }
-
-export default withTracker()(pkg)

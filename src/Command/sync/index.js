@@ -1,5 +1,5 @@
+import tracker from "../tracker.js"
 import { existsSync, writeFileSync } from "fs"
-import withTracker from "../../with-tracker/index.js"
 import { available as availableStatuses } from "../statuses.js"
 import getStackOutputs from "./getStackOutputs.js"
 import getStatus from "../getStatus/index.js"
@@ -14,33 +14,33 @@ import md5 from "../pkg/md5.js"
  * @param {Boolean} [params.noOverride=false] If provided, the command will not
  * override existing file
  */
-async function sync({ region, stackName, syncPath, noOverride = false }) {
+export default async function sync({
+  region,
+  stackName,
+  syncPath,
+  noOverride = false,
+}) {
   if (noOverride && existsSync(syncPath)) {
     // If file already exists and shouldn't be overriden
-    this.tracker.interruptInfo(`Stack outputs already exists at ${syncPath}`)
+    tracker.interruptInfo(`Stack outputs already exists at ${syncPath}`)
     return
   }
   // Check if stack is available
-  const status = await getStatus.call(this, { region, stackName, quiet: true })
+  const status = await getStatus({ region, stackName, quiet: true })
   if (!availableStatuses.includes(status)) {
     // If stack is in a non available status
-    this.tracker.interruptError(
-      `Stack ${stackName} is not available (${status})`
-    )
+    tracker.interruptError(`Stack ${stackName} is not available (${status})`)
     return
   }
   // Download stack outputs
-  this.tracker.setStatus("syncing outputs")
-  const outputs = await getStackOutputs.call(this, { region, stackName })
+  tracker.setStatus("syncing outputs")
+  const outputs = await getStackOutputs({ region, stackName })
   // Save stack outputs locally
   const hashBefore = existsSync(syncPath) && (await md5(syncPath))
   writeFileSync(syncPath, JSON.stringify(outputs), "utf8")
   const hashAfter = await md5(syncPath)
   const isUpdated = hashAfter !== hashBefore
-  if (isUpdated)
-    this.tracker.interruptSuccess(`Stack outputs saved at ${syncPath}`)
-  else this.tracker.interruptInfo(`Stack outputs already up-to-date`)
+  if (isUpdated) tracker.interruptSuccess(`Stack outputs saved at ${syncPath}`)
+  else tracker.interruptInfo(`Stack outputs already up-to-date`)
   return outputs
 }
-
-export default withTracker()(sync)

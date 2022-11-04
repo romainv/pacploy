@@ -1,7 +1,11 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
+import { call } from "../throttle.js"
 import { stable as stableStatuses } from "../statuses.js"
 import displayEvents from "./displayEvents.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  DescribeStackEventsCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Retrieve the errors for a failed stack deployment, recursively for nested
@@ -13,27 +17,29 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {Date} [params.timestamp2] The oldest date to filter events
  * @param {String} [params.parentStackId] Recursively keep track of the parent
  * stack
- * @return {Object} The errors info
+ * @return {Promise<Object>} The errors info
  */
-async function getErrors({
+export default async function getErrors({
   region,
   stackName,
   timestamp1,
   timestamp2,
   parentStackId,
 }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
-  this.tracker.setStatus("retrieving errors")
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  tracker.setStatus("retrieving errors")
   // Retrieve all relevant events
   let nextToken,
     lastTimestamp,
     events = []
   do {
-    const { StackEvents: eventsPage, NextToken } = await cf.describeStackEvents(
-      {
+    const { StackEvents: eventsPage = [], NextToken } = await call(
+      cf,
+      cf.send,
+      new DescribeStackEventsCommand({
         StackName: stackName,
         NextToken: nextToken,
-      }
+      })
     )
     nextToken = NextToken // Update the token
     if (!eventsPage.length) return // If no events were found
@@ -104,7 +110,7 @@ async function getErrors({
             // If current resource is a nested stack
             Object.assign(
               errors.resources[LogicalResourceId],
-              await getErrors.call(this, {
+              await getErrors({
                 region,
                 stackName: PhysicalResourceId,
                 timestamp1,
@@ -120,8 +126,6 @@ async function getErrors({
   )
   if (!parentStackId)
     // Display errors before final return
-    displayEvents.call(this.tracker, errors)
+    displayEvents.call(tracker, errors)
   return errors
 }
-
-export default withTracker()(getErrors)

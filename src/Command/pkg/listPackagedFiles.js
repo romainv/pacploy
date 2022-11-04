@@ -1,7 +1,10 @@
-import withTracker from "../../with-tracker/index.js"
+import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
 import parseRemoteTemplate from "./parseRemoteTemplate.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import {
+  CloudFormationClient,
+  GetTemplateCommand,
+} from "@aws-sdk/client-cloudformation"
 import md5 from "./md5.js"
 
 /**
@@ -14,31 +17,43 @@ import md5 from "./md5.js"
  * template was packaged. This is only used for the root template, all other
  * resources will include the reference to the bucket to which they were
  * packaged
- * @return {Array} The {Bucket, Key} of packaged files
+ * @return {Promise<Array>} The {Bucket, Key} of packaged files
  */
-async function listPackagedFiles({ region, stackName, deployBucket }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+export default async function listPackagedFiles({
+  region,
+  stackName,
+  deployBucket,
+}) {
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   const packaged = []
   // Retrieve the template of the provided stack
-  const { TemplateBody } = await cf.getTemplate({
-    StackName: stackName,
-    TemplateStage: "Processed",
-  })
+  const { TemplateBody } = await call(
+    cf,
+    cf.send,
+    new GetTemplateCommand({
+      StackName: stackName,
+      TemplateStage: "Processed",
+    })
+  )
   if (deployBucket) {
     // If the template's deployBucket was passed, recalculate its key as it is
     // not linked to the stack anymore and add it to the list
-    const { TemplateBody: originalContent } = await cf.getTemplate({
-      StackName: stackName,
-      // Use the original content as it was used to calculate the hash
-      TemplateStage: "Original",
-    })
+    const { TemplateBody: originalContent } = await call(
+      cf,
+      cf.send,
+      new GetTemplateCommand({
+        StackName: stackName,
+        // Use the original content as it was used to calculate the hash
+        TemplateStage: "Original",
+      })
+    )
     packaged.push({
       Bucket: deployBucket,
       Key: `${await md5(originalContent)}.yaml`,
     })
   }
   // Recursively retrieve the template's packaged resources
-  await parseRemoteTemplate.call(this, {
+  await parseRemoteTemplate({
     region,
     templateBody: TemplateBody,
     fn: ({ resourceType, propName, propValue }) => {
@@ -65,5 +80,3 @@ async function listPackagedFiles({ region, stackName, deployBucket }) {
   })
   return packaged
 }
-
-export default withTracker()(listPackagedFiles)

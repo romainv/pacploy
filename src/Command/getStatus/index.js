@@ -1,5 +1,9 @@
-import withTracker from "../../with-tracker/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import tracker from "../tracker.js"
+import { call } from "../throttle.js"
+import {
+  CloudFormationClient,
+  DescribeStacksCommand,
+} from "@aws-sdk/client-cloudformation"
 
 /**
  * Retrieve the status of a stack
@@ -8,15 +12,17 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {String} params.stackName The name of the deployed stack
  * @param {Boolean} [params.quiet=true] Whether to display stack status
  */
-async function getStatus({ region, stackName, quiet = true }) {
-  const cf = new AWS.CloudFormation({ apiVersion: "2010-05-15", region })
+export default async function getStatus({ region, stackName, quiet = true }) {
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   let status
   // Retrieve basic stack information, separating serialized values
-  this.tracker.setStatus("retrieving stack status")
+  tracker.setStatus("retrieving stack status")
   try {
-    const {
-      Stacks: [{ StackStatus }],
-    } = await cf.describeStacks({ StackName: stackName })
+    const { Stacks: [{ StackStatus }] = [] } = await call(
+      cf,
+      cf.send,
+      new DescribeStacksCommand({ StackName: stackName })
+    )
     status = StackStatus
   } catch (err) {
     // Capture case when stack doesn't exist as a specific status
@@ -24,8 +30,6 @@ async function getStatus({ region, stackName, quiet = true }) {
     else throw err
   }
   if (!quiet)
-    this.tracker.interruptInfo(`stack '${stackName}' is in status ${status}`)
+    tracker.interruptInfo(`stack '${stackName}' is in status ${status}`)
   return status
 }
-
-export default withTracker()(getStatus)

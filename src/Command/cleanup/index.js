@@ -1,4 +1,4 @@
-import withTracker from "../../with-tracker/index.js"
+import tracker from "../tracker.js"
 import deleteResource from "./deleteResource.js"
 import listRetainedResources from "./listRetainedResources.js"
 import listStackResources from "./listStackResources.js"
@@ -20,7 +20,7 @@ import emptyBucket from "./emptyBucket.js"
  * @param {Boolean} [params.forceDelete=false] If true, will not ask for
  * confirmation before deleting the stack and associated resources
  */
-async function cleanup({
+export default async function cleanup({
   region,
   stackName,
   forceDelete,
@@ -32,21 +32,21 @@ async function cleanup({
   if (!noPrune && deployBucket) {
     // If stack deployment files should be pruned
     let packagedFiles = []
-    this.tracker.setStatus(`retrieving current packaged files`)
-    packagedFiles = await listPackagedFiles.call(this, {
+    tracker.setStatus(`retrieving current packaged files`)
+    packagedFiles = await listPackagedFiles({
       region,
       stackName,
       deployBucket,
     })
     if (
       forceDelete ||
-      (await this.tracker.confirm(
+      (await tracker.confirm(
         `Prune unused files from deployment bucket ${deployBucket}?`
       ))
     ) {
       // If file deletion was confirmed
-      this.tracker.setStatus(`pruning old deployment files`)
-      const pruned = await emptyBucket.call(this, {
+      tracker.setStatus(`pruning old deployment files`)
+      const pruned = await emptyBucket({
         region,
         bucket: deployBucket,
         // Only delete amongst the stack's files
@@ -56,7 +56,7 @@ async function cleanup({
           .filter(({ Bucket }) => Bucket === deployBucket)
           .map(({ Key }) => Key),
       })
-      this.tracker[pruned.length ? "interruptSuccess" : "interruptInfo"](
+      tracker[pruned.length ? "interruptSuccess" : "interruptInfo"](
         `${pruned.length ? pruned.length : "No"} unused files pruned`
       )
     }
@@ -65,26 +65,26 @@ async function cleanup({
     // If retained resources should be deleted
     // Collect live stack resources and active packaged files if stack exists
     let liveResources = []
-    if ((await getStatus.call(this, { region, stackName })) !== "NEW") {
-      this.tracker.setStatus(`retrieving live resources`)
-      liveResources = await listStackResources.call(this, { region, stackName })
+    if ((await getStatus({ region, stackName })) !== "NEW") {
+      tracker.setStatus(`retrieving live resources`)
+      liveResources = await listStackResources({ region, stackName })
     }
     // Collect retained resources
-    this.tracker.setStatus(`retrieving retained resources`)
-    const retainedResources = await listRetainedResources.call(this, {
+    tracker.setStatus(`retrieving retained resources`)
+    const retainedResources = await listRetainedResources({
       region,
       stackName,
       exclude: liveResources,
     })
     if (retainedResources.length === 0) {
-      this.tracker.interruptInfo(`No retained resources`)
+      tracker.interruptInfo(`No retained resources`)
     } else {
       // Delete retained resources if any
       const { arnsToDelete } = forceDelete
         ? // If forceDelete is set, select all resources
           { arnsToDelete: retainedResources }
         : // If forceDelete is not set, ask which resources to delete
-          await this.tracker.prompt({
+          await tracker.prompt({
             type: "multiselect",
             name: "arnsToDelete",
             message: "Do you want to delete any retained resources?",
@@ -100,19 +100,19 @@ async function cleanup({
       )
       await Promise.all(
         arnsToDelete.map(async (arn) => {
-          deletedResources[arn] = await deleteResource.call(this, {
+          deletedResources[arn] = await deleteResource({
             region,
             arn,
           })
           // Update progress
           if (deletedResources[arn] === true)
-            this.tracker.interruptSuccess(`Deleted ${arn}`)
+            tracker.interruptSuccess(`Deleted ${arn}`)
           else if (deletedResources[arn])
-            this.tracker.interruptError(
+            tracker.interruptError(
               `Failed to delete ${arn}: ${deletedResources[arn]}`
             )
-          else this.tracker.interruptError(`Failed to delete ${arn}`)
-          this.tracker.setStatus(
+          else tracker.interruptError(`Failed to delete ${arn}`)
+          tracker.setStatus(
             `${Object.values(deletedResources).reduce(
               (total, val) => total + (val ? 1 : 0),
               0
@@ -121,12 +121,12 @@ async function cleanup({
         })
       )
       // Check how many resources are still retained after deletions
-      const retainedResourcesLeft = await listRetainedResources.call(this, {
+      const retainedResourcesLeft = await listRetainedResources({
         region,
         stackName,
         exclude: liveResources,
       })
-      this.tracker.interruptInfo(
+      tracker.interruptInfo(
         `${
           retainedResourcesLeft.length ? retainedResourcesLeft.length : "No"
         } retained resources left`
@@ -134,5 +134,3 @@ async function cleanup({
     }
   }
 }
-
-export default withTracker()(cleanup)

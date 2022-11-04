@@ -1,5 +1,10 @@
-import withTracker from "../../with-tracker/index.js"
-import AWS from "../../aws-sdk-proxy/index.js"
+import { call } from "../throttle.js"
+import {
+  S3Client,
+  GetObjectTaggingCommand,
+  ListObjectVersionsCommand,
+  DeleteObjectsCommand,
+} from "@aws-sdk/client-s3"
 
 /**
  * Delete all objects inside a versioned S3 bucket
@@ -9,10 +14,15 @@ import AWS from "../../aws-sdk-proxy/index.js"
  * @param {Object} [params.tagsFilter] S3 objects tags to filter which objects
  * to delete
  * @param {Array<String>} [params.exclude] A list of keys to keep
- * @return {Array} The list of deleted keys
+ * @return {Promise<Array>} The list of deleted keys
  */
-async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
-  const s3 = new AWS.S3({ apiVersion: "2006-03-01", region })
+export default async function emptyBucket({
+  region,
+  bucket,
+  tagsFilter,
+  exclude = [],
+}) {
+  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
   // Remove object versions first, then delete markers
   let nextVersionIdMarker,
     nextKeyMarker,
@@ -21,16 +31,20 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
     // Retrieve object versions
     let versionObjects, deleteMarkerObjects
     ;({
-      Versions: versionObjects,
-      DeleteMarkers: deleteMarkerObjects,
+      Versions: versionObjects = [],
+      DeleteMarkers: deleteMarkerObjects = [],
       NextVersionIdMarker: nextVersionIdMarker,
       NextKeyMarker: nextKeyMarker,
-    } = await s3.listObjectVersions({
-      Bucket: bucket,
-      MaxKeys: 1000, // Maximum objects to return on each page
-      VersionIdMarker: nextVersionIdMarker,
-      KeyMarker: nextKeyMarker,
-    }))
+    } = await call(
+      s3,
+      s3.send,
+      new ListObjectVersionsCommand({
+        Bucket: bucket,
+        MaxKeys: 1000, // Maximum objects to return on each page
+        VersionIdMarker: nextVersionIdMarker,
+        KeyMarker: nextKeyMarker,
+      })
+    ))
     // Filter out keys that were excluded and format as expected
     let objects = versionObjects
       .concat(deleteMarkerObjects)
@@ -42,10 +56,14 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
       const filteredKeys = await Promise.all(
         objects.map(async ({ Key }) => {
           // Retrieve the object's tags
-          const { TagSet } = await s3.getObjectTagging({
-            Bucket: bucket,
-            Key,
-          })
+          const { TagSet } = await call(
+            s3,
+            s3.send,
+            new GetObjectTaggingCommand({
+              Bucket: bucket,
+              Key,
+            })
+          )
           // De-serialize the TagSet
           const tags = TagSet.reduce((tags, { Key, Value }) => {
             tags[Key] = Value
@@ -64,14 +82,16 @@ async function emptyBucket({ region, bucket, tagsFilter, exclude = [] }) {
       objects = objects.filter(({ Key }) => filteredKeys.includes(Key))
     }
     if (objects.length > 0) {
-      await s3.deleteObjects({
-        Bucket: bucket,
-        Delete: { Objects: objects },
-      })
+      await call(
+        s3,
+        s3.send,
+        new DeleteObjectsCommand({
+          Bucket: bucket,
+          Delete: { Objects: objects },
+        })
+      )
       deleted = deleted.concat(objects.map(({ Key }) => Key))
     }
   } while (nextVersionIdMarker || nextKeyMarker)
   return deleted
 }
-
-export default withTracker()(emptyBucket)

@@ -5,7 +5,7 @@ import { existsSync, createReadStream } from "fs"
  * Calculate the md5 hash of a content
  * @param {Object} content The content for which to calculate the hash. This
  * can also be the path to a file whose content we want to get a hash for
- * @return {String} The md5 hash in hexadecimal encoding
+ * @return {Promise<String>} The md5 hash in hexadecimal encoding
  */
 export default async function md5(content) {
   const hash = createHash("md5") // Instanciate a hash
