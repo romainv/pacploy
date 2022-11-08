@@ -29,11 +29,6 @@ const command = {
         describe: "The URI of an ECR to deploy docker images",
         alias: "ecr",
       })
-      .option("zip-to", {
-        type: "String",
-        describe:
-          "If provided, will also zip the packaged template to the specified path",
-      })
   },
 }
 

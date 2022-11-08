@@ -1,0 +1,115 @@
+import tracker from "../tracker.js"
+import { call } from "../throttle.js"
+import {
+  createSuccess as createSuccessStatuses,
+  createFailed as createFailedStatuses,
+} from "../statuses.js"
+import getChangeSetArgs from "./getChangeSetArgs.js"
+import waitForStatus from "../waitForStatus/index.js"
+import deleteChangeSets from "../deleteChangeSets/index.js"
+import {
+  CloudFormationClient,
+  CreateChangeSetCommand,
+} from "@aws-sdk/client-cloudformation"
+
+/**
+ * Create a change set for the supplied stack
+ * @param {Object} stack The stack parameters
+ * @param {String} stack.region The stack's region
+ * @param {String} stack.templatePath The path to the template (can be a URL)
+ * @param {String} stack.stackName The name of the deployed stack
+ * @param {String} stack.stackStatus The stack status ('NEW' if doesn't exist)
+ * @param {Object} [stack.stackParameters] The stack parameters. Values can be
+ * provided as a map with ParameterValue (String) and UsePreviousValue (Boolean)
+ * or direclty a string which will be interpreted as ParameterValue
+ * @param {Object} [stack.stackTags] The tags to apply to the stack
+ * @param {Boolean} [stack.quiet=false] If true, will not update status
+ * @param {Object} [params] Additional parameters
+ * @param {Boolean} [params.quiet] Whether to disable outputs
+ * @param {Number} [params.attempts=0] Keep track of attempts to avoid infinite
+ * recursions
+ * @return {Promise<Object>} The arn of the change set and whether it contains
+ * any changes
+ */
+export default async function createChangeSet(
+  {
+    region,
+    templatePath,
+    stackName,
+    stackStatus,
+    stackParameters = {},
+    stackTags = {},
+  },
+  { quiet = false, attempts = 0 }
+) {
+  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  if (!quiet) tracker.setStatus("creating change set")
+  // Retrieve creation arguments
+  const args = await getChangeSetArgs({
+    region,
+    templatePath,
+    stackName,
+    stackStatus,
+    stackParameters,
+    stackTags,
+  })
+  // Create the requested change set
+  let changeSetArn
+  try {
+    ;({ Id: changeSetArn } = await call(
+      cf,
+      cf.send,
+      new CreateChangeSetCommand(args)
+    ))
+  } catch (err) {
+    if (
+      err.code === "LimitExceededException" &&
+      err.message.startsWith("ChangeSet limit exceeded")
+    ) {
+      // If we reach the limit of change sets allowed for the current stack
+      tracker.interruptWarn(err.message)
+      // Delete change sets
+      await deleteChangeSets({ region, stackName })
+      // Try again if less than 3 attempts
+      if (attempts < 3)
+        return createChangeSet(
+          {
+            region,
+            templatePath,
+            stackName,
+            stackStatus,
+            stackParameters,
+            stackTags,
+          },
+          { quiet, attempts: attempts + 1 }
+        )
+      else throw err // Fail if too many attempts
+    } else throw err // Unrecognized error
+  }
+  // Wait for the change set to be created
+  const res = await waitForStatus({
+    region,
+    arn: changeSetArn,
+    success: createSuccessStatuses,
+    failure: createFailedStatuses,
+    msg: "",
+  })
+  let hasChanges = true // Indicate whether the stack has any changes
+  if (res !== true) {
+    // If status is not successful
+    if (
+      typeof res === "string" &&
+      (res.includes("The submitted information didn't contain changes") ||
+        res.includes("No updates are to be performed."))
+    ) {
+      tracker.interruptInfo(`Stack ${stackName} is already up-to-date`)
+      hasChanges = false
+      // Failure is expected if there are no changes
+    } else {
+      // If an actual error occured
+      tracker.interruptError(`Failed to create change set for ${stackName}`)
+      throw new Error(res || "")
+    }
+  }
+  return { changeSetArn, hasChanges }
+}
