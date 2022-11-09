@@ -33,7 +33,7 @@ const command = {
       .option("cleanup", {
         type: "boolean",
         describe:
-          "If set, will delete retained resources assiciated with the supplied stack",
+          "If set, will delete retained resources associated with the supplied stack",
         default: Boolean(process.argv.indexOf("--cleanup") > -1),
       })
       .option("force-upload", {

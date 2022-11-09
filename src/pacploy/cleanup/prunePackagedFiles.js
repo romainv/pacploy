@@ -2,41 +2,67 @@ import tracker from "../tracker.js"
 import emptyBucket from "./emptyBucket.js"
 import listPackagedFiles from "../pkg/listPackagedFiles.js"
 import getStatus from "../getStatus/index.js"
-import resolveArgs from "../resolveArgs/index.js"
+import resolveParams from "../params/index.js"
+import listBucket from "./listBucket.js"
+
+/**
+ * @typedef {Object} PruningParams The pruning parameters
+ * @property {String} region The bucket's region
+ * @property {String} bucket The bucket name
+ * @property {Object} [tagsFilter] S3 objects tags to filter which objects
+ * to delete
+ * @property {Array<String>} [exclude] A list of keys to keep
+ * @property {Number} [pageSize=1000] The number of keys to return per page
+ */
 
 /**
  * Prune unused packaged files associated with stacks from their deployment
  * buckets
- * @param {import('./index.js').StackParam[]} stacks The stack parameters
+ * @param {import('../params/index.js').StackParams[]} stacks The list of stack
+ * parameters to prune
  */
 export default async function prunePackagedFiles(stacks) {
-  // Remove potential duplicates and set an identifier for each stack
-  const _stacks = stacks.reduce((res, stack) => {
-    // De-duplicate stacks by their region and name
-    const id = `${stack.region}|${stack.stackName}`
-    // Keep only the first occurrence in case of duplicates
-    if (!Object.keys(res).includes(id)) res[id] = stack
-    return res
-  }, {})
+  // Resolve stacks parameters
+  tracker.setStatus(`resolving stacks parameters`)
+  const _stacks = (await Promise.all(stacks.map(resolveParams)))
+    // Remove potential duplicates and format as a map
+    .reduce((res, stack) => {
+      // Keep only the first occurrence in case of duplicates
+      if (!Object.keys(res).includes(stack.id)) res[stack.id] = stack
+      return res
+    }, {})
 
-  // Resolve deployment bucket if needed
-  await Promise.all(
-    Object.entries(_stacks).map(async ([id, stack]) => {
-      const { deployBucket } = await resolveArgs(stack)
-      _stacks[id].deployBucket = deployBucket
-    })
+  // Select the stacks which have files to prune
+  tracker.setStatus(`retrieving files to prune`)
+  // Build the parameters used to list and empty the buckets
+  const prunableStacks = Object.assign(
+    {},
+    ...(
+      await Promise.all(
+        Object.entries(_stacks)
+          // Only consider stacks with a deployment bucket flagged to be pruned
+          .filter(([, { noPrune, deployBucket }]) => !noPrune && deployBucket)
+          .map(async ([id, stack]) => {
+            const pruningParams = await getPruningParams(stack)
+            // Check if the stack needs pruning, if so retain its params
+            if (await needsPruning(pruningParams))
+              return { [id]: pruningParams }
+          })
+      )
+    ).filter(Boolean)
   )
 
-  // Select the stacks which have a deployment bucket flagged to be pruned
-  let prunableStackIds = Object.entries(_stacks)
-    .filter(([, { noPrune, deployBucket }]) => !noPrune && deployBucket)
-    .map(([id]) => id)
+  if (Object.keys(prunableStacks).length === 0) {
+    tracker.interruptInfo("No files to prune")
+    return
+  }
+
   // Auto-confirm stacks with the forceDelete flag
-  const stackIdsToPrune = prunableStackIds.filter(
+  const stackIdsToPrune = Object.keys(prunableStacks).filter(
     (id) => _stacks[id].forceDelete
   )
   // Check which stacks require confirmation
-  const stackIdsToConfirm = prunableStackIds.filter(
+  const stackIdsToConfirm = Object.keys(prunableStacks).filter(
     (id) => !_stacks[id].forceDelete
   )
   if (stackIdsToConfirm.length > 0) {
@@ -64,31 +90,7 @@ export default async function prunePackagedFiles(stacks) {
     )
     const prunedKeys = (
       await Promise.all(
-        stackIdsToPrune.map(async (id) => {
-          const { region, stackName, deployBucket } = _stacks[id]
-          // Retrieve the list of packaged files still in use by the current
-          // stack, if the stack exists
-          const packagedFiles =
-            (await getStatus({ region, stackName })) === "NEW"
-              ? []
-              : await listPackagedFiles({
-                  region,
-                  stackName,
-                  deployBucket,
-                })
-          // Remove unused packaged files associated with the current stack
-          return await emptyBucket({
-            region,
-            bucket: deployBucket,
-            // Only delete amongst the stack's files
-            tagsFilter: { RootStackName: stackName },
-            // Don't delete packaged files still in use
-            // DEBUG: What about files used in multiple stacks?
-            exclude: packagedFiles
-              .filter(({ Bucket }) => Bucket === deployBucket)
-              .map(({ Key }) => Key),
-          })
-        })
+        stackIdsToPrune.map((id) => emptyBucket(prunableStacks[id]))
       )
     ).flat()
     // Display the number of pruned files
@@ -96,4 +98,56 @@ export default async function prunePackagedFiles(stacks) {
       `${prunedKeys.length ? prunedKeys.length : "No"} unused files pruned`
     )
   }
+}
+
+/**
+ * Retrieve the pruning parameters for a stack
+ * @param {import('../params/index.js').ResolvedStackParams} params The stack's
+ * parameters
+ * @return {Promise<PruningParams>} The pruning parameters
+ */
+async function getPruningParams({ region, stackName, deployBucket }) {
+  // Retrieve the list of packaged files still in use by the current
+  // stack, if it exists
+  const packagedFiles =
+    (await getStatus({ region, stackName })) === "NEW"
+      ? []
+      : await listPackagedFiles({ region, stackName, deployBucket })
+  // Build the pruning parameters
+  const pruningParams = {
+    region,
+    bucket: deployBucket,
+    // Only prune the stack's files
+    tagsFilter: { RootStackName: stackName },
+    // Don't delete packaged files still in use
+    exclude: packagedFiles
+      .filter(({ Bucket }) => Bucket === deployBucket)
+      .map(({ Key }) => Key),
+  }
+  return pruningParams
+}
+
+/**
+ * Checks if a stack has files that need to be pruned
+ * @param {PruningParams} params The pruning parameters
+ * @return {Promise<Boolean>} Whether the stack needs pruning
+ */
+async function needsPruning(params) {
+  let needsPruning = false,
+    nextVersionIdMarker,
+    nextKeyMarker
+  do {
+    // Retrieve object versions
+    let objects
+    ;[objects, nextVersionIdMarker, nextKeyMarker] = await listBucket(
+      params,
+      nextVersionIdMarker,
+      nextKeyMarker
+    )
+    if (objects.length > 0) {
+      needsPruning = true
+      break
+    }
+  } while (nextVersionIdMarker || nextKeyMarker)
+  return needsPruning
 }

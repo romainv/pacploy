@@ -2,8 +2,15 @@ import deployStack from "./deployStack.js"
 import tracker from "../tracker.js"
 
 /**
+ * @typedef {Object} StackToDeploy Additional properties specific to the
+ * deployment of a stack
+ * @property {String} [deploymentStatus] The deletion status
+ */
+
+/**
  * Recursively deploy stacks while respecting their dependencies
- * @param {import('./index.js').StackParam[]} stacks The stacks to deploy
+ * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * The stacks to deploy
  */
 export default async function deployStacks(stacks) {
   // Select the stacks which are ready to deploy
@@ -35,7 +42,8 @@ export default async function deployStacks(stacks) {
 
 /**
  * Update the tracker status to display the progress
- * @param {import('./index.js').StackParam[]} stacks The updated stacks info
+ * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * The updated stacks info
  */
 function updateTracker(stacks) {
   const total = stacks.length
@@ -45,15 +53,19 @@ function updateTracker(stacks) {
   const inProgress = stacks.filter(
     ({ deploymentStatus }) => deploymentStatus === "in progress"
   ).length
-  tracker.setStatus(
-    `deploying ${total} stacks (${left} left, ${inProgress} in progress)`
-  )
+  if (total > 1)
+    tracker.setStatus(
+      `deploying ${total} stacks (${left} left, ${inProgress} in progress)`
+    )
+  else tracker.setStatus(`deploying stack`)
 }
 
 /**
  * Select the stacks which are ready to be deployed
- * @param {import('./index.js').StackParam[]} stacks The list of stack params
- * @return {import('./index.js').StackParam[]} The subset ready to be deployed
+ * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * The list of stack params
+ * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * subset ready to be deployed
  */
 function getStacksReadyToDeploy(stacks) {
   // Filter on the stacks ready to be deployed, i.e.:
@@ -74,10 +86,10 @@ function getStacksReadyToDeploy(stacks) {
  * Retrieve the stack parameters of the stacks on which the supplied one
  * depends
  * @param {Object} stack The parameters of the stack to lookup
- * @param {import('./index.js').StackParam[]} stacks The list of stacks in
- * which to lookup
- * @return {import('./index.js').StackParam[]} The subset of stacks on which
- * the supplied one depends
+ * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * The list of stacks in which to lookup
+ * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * subset of stacks on which the supplied one depends
  */
 function getDependencies({ dependsOn = [] }, stacks) {
   // For all declared dependency, lookup in the stacks list the first matching

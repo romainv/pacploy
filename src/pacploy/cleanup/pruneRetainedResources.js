@@ -7,7 +7,8 @@ import getStatus from "../getStatus/index.js"
 /**
  * Delete retained resources created by some stacks but not associated with
  * them anymore, and prune old files from deployment bucket
- * @param {import('./index.js').StackParam[]} stacks The stack parameters
+ * @param {import('../params/index.js').StackParams[]} stacks The list of stack
+ * parameters to prune
  */
 export default async function pruneRetainedResources(stacks) {
   // Select and de-duplicate the stacks which have been flagged to be pruned

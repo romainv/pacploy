@@ -9,7 +9,7 @@ import {
  * @param {Object} params Function parameters
  * @param {String} params.region The stack's region
  * @param {String} params.stackName The name of the deployed stack
- * @return {Promise<Object>} An object containing the stack information
+ * @return {Promise<Object>} An object containing the stack outputs
  */
 export default async function getStackInfo({ region, stackName }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })

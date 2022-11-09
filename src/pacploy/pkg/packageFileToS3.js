@@ -8,6 +8,7 @@ import md5 from "./md5.js"
 import tmp from "tmp"
 import {
   S3Client,
+  GetObjectTaggingCommand,
   PutObjectTaggingCommand,
   HeadObjectCommand,
 } from "@aws-sdk/client-s3"
@@ -57,6 +58,7 @@ export default async function packageFileToS3(
     })
   content = createReadStream(file.path) // This returns a Stream
   hash = await md5(file.path)
+
   // Check if object needs to be uploaded (checks if a key with the same
   // content hash already exists)
   const key = `${hash}${extname(file.path)}`
@@ -74,6 +76,7 @@ export default async function packageFileToS3(
     // Throw unexpected errors
     if (err.$metadata?.httpStatusCode !== 404) throw err
   }
+
   if (forceUpload || !exists) {
     // If object doesn't exist yet, or upload was forced: upload it
     await new Upload({
@@ -81,22 +84,11 @@ export default async function packageFileToS3(
       params: { Bucket: deployBucket, Key: key, Body: content },
     }).done()
     status = !exists ? "updated" : "forced"
-    // Apply tags to file
-    await call(
-      s3,
-      s3.send,
-      new PutObjectTaggingCommand({
-        Bucket: deployBucket,
-        Key: key,
-        Tagging: {
-          TagSet: Object.entries(stackTags).map(([Key, Value]) => ({
-            Key,
-            Value,
-          })),
-        },
-      })
-    )
   }
+
+  // Apply stack tags
+  await updateTags(stackTags, region, deployBucket, key)
+
   // Return the S3 location
   const regionPrefix = region === "us-east-1" ? "s3" : `s3-${region}`
   return {
@@ -104,4 +96,56 @@ export default async function packageFileToS3(
     status,
     hash,
   }
+}
+
+/**
+ * Update the uploaded file's tags
+ * @param {Object} stackTags The stacks to apply
+ * @param {String} region The bucket's region
+ * @param {String} bucket The file's bucket
+ * @param {String} key The file's key
+ */
+async function updateTags(stackTags, region, bucket, key) {
+  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+
+  // Retrieve existing tags if any, and deserialize them
+  const existingTags = (
+    await call(
+      s3,
+      s3.send,
+      new GetObjectTaggingCommand({ Bucket: bucket, Key: key })
+    )
+  ).TagSet.reduce((tags, { Key, Value }) => {
+    tags[Key] = Value
+    return tags
+  }, {})
+
+  // Merge values (comma-separated) in case multiple stacks use the same file
+  const allKeys = Array.from(
+    new Set(Object.keys(existingTags).concat(Object.keys(stackTags)))
+  )
+  const tagsToApply = allKeys.reduce((merged, key) => {
+    const existing = existingTags[key] || ""
+    const updated = stackTags[key] || ""
+    merged[key] = Array.from(
+      new Set(existing.split(",").concat(updated.split(",")))
+    ).join(",")
+    return merged
+  }, {})
+
+  // Apply tags to file
+  await call(
+    s3,
+    s3.send,
+    new PutObjectTaggingCommand({
+      Bucket: bucket,
+      Key: key,
+      Tagging: {
+        TagSet: Object.entries(tagsToApply).map(([Key, Value]) => ({
+          Key,
+          Value,
+        })),
+      },
+    })
+  )
 }

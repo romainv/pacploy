@@ -5,27 +5,19 @@ import {
   CloudFormationClient,
   GetTemplateSummaryCommand,
 } from "@aws-sdk/client-cloudformation"
+import getStatus from "../getStatus/index.js"
 
 /**
  * Generate valid arguments to provide to the change set creation request
- * @param {Object} params Additional function parameters
- * @param {String} params.region The stack's region
- * @param {String} params.templatePath The path to the template (can be a URL)
- * @param {String} params.stackName The name of the deployed stack
- * @param {String} params.stackStatus The stack status ('NEW' if doesn't exist)
- * @param {Object} [params.stackParameters] The stack parameters. Values can be
- * provided as a map with ParameterValue (String) and UsePreviousValue (Boolean)
- * or direclty a string which will be interpreted as ParameterValue
- * @param {Object} [params.stackTags] The tags to apply to the stack
+ * @param {import('../params/index.js').ResolvedStackParams} params Stack params
  * @return {Promise<Object>} The arguments to use to create the change set
  */
 export default async function getChangeSetArgs({
   region,
   templatePath,
   stackName,
-  stackStatus,
-  stackParameters = {},
-  stackTags = {},
+  stackParameters,
+  stackTags,
 }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   // Convert templatePath to a Cloudformation argument
@@ -81,13 +73,15 @@ export default async function getChangeSetArgs({
   const ChangeSetName = `${stackName
     .replace(/[^-a-zA-Z0-9]/g, "")
     .substring(0, 100)}-${Date.now()}`
+  // Check if stack is new
+  const isNew = isNewStatuses.includes(await getStatus({ region, stackName }))
   // Return arguments
   return Object.assign(
     {
       ChangeSetName,
       StackName: stackName,
       Capabilities,
-      ChangeSetType: isNewStatuses.includes(stackStatus) ? "CREATE" : "UPDATE",
+      ChangeSetType: isNew ? "CREATE" : "UPDATE",
       Parameters,
       Tags,
     },

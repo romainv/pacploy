@@ -6,29 +6,22 @@ import getStatus from "../getStatus/index.js"
 import md5 from "../pkg/md5.js"
 
 /**
- * @typedef {Object} StackParam The parameters of the stack to sync
- * @property {String} region The stack's region
- * @property {String} stackName The name of the deployed stack
- * @property {String} syncPath The file in which to save stack info
- * @property {Boolean} [noOverride=false] If provided, the command will not
- * override existing file
- */
-
-/**
  * Download outputs of a deployed stack(s) into a local file
- * @param {StackParam|StackParam[]} stacks The stack parameters
+ * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * The list of stack parameters whose outputs to sync
  * @param {Object} [params] Additional parameters
  * @param {Boolean} [params.quiet] Whether to turn off tracker status update
  */
 export default async function sync(stacks, params) {
   if (!Array.isArray(stacks)) stacks = [stacks]
+
   // Sync outputs of all supplied stacks
   await Promise.all(stacks.map((stack) => syncStack(stack, params)))
 }
 
 /**
  * Download outputs of a deployed stack into a local file
- * @param {StackParam} stack The stack parameters
+ * @param {import('../params/index.js').StackParams} stack The stack parameters
  * @param {Object} [params] Additional parameters
  * @param {Boolean} [params.quiet] Whether to turn off tracker status update
  */

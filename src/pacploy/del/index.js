@@ -2,19 +2,12 @@ import tracker from "../tracker.js"
 import deleteStacks from "./deleteStacks.js"
 import cleanup from "../cleanup/index.js"
 import getStatus from "../getStatus/index.js"
-
-/**
- * @typedef {Object} StackParam The parameters of the stack to delete
- * @property {String} region The stack's region
- * @property {String} stackName The name of the deployed stack
- * @property {{region: String, name: String}[]} [dependsOn] The dependent stacks
- * @property {Boolean} [forceDelete] Whether to force-delete stack and resources
- * @property {String} [deleteStatus] Track the deletion status
- */
+import resolveParams from "../params/index.js"
 
 /**
  * Delete stacks while respecting their dependencies
- * @param {StackParam|StackParam[]} stacks The stacks to delete
+ * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * The list of stack parameters to delete
  */
 export default async function del(stacks) {
   if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
@@ -28,26 +21,31 @@ export default async function del(stacks) {
     // Warn user that we'll not ask for confirmation before deleting
     tracker.interruptWarn("force-delete is set")
 
+  // Resolve stack parameters
+  tracker.setStatus("resolving stacks parameters")
+  const resolvedStacks = await Promise.all(stacks.map(resolveParams))
+
   // Check stack status
   tracker.setStatus("checking stacks status")
   const alreadyDeletedStackIds = (
     await Promise.all(
-      stacks.map(async ({ region, stackName }) => {
+      resolvedStacks.map(async ({ id, region, stackName }) => {
         if ((await getStatus({ region, stackName })) === "NEW") {
           tracker.interruptInfo(`Stack ${stackName} already deleted`)
-          return `${region}|${stackName}`
+          return id
         }
       })
     )
   ).filter(Boolean)
 
-  // Remove potential duplicates, already deleted stacks and set an identifier
+  // Remove potential duplicates, already deleted stacks and format as map
   const _stacks = stacks.reduce((res, stack) => {
-    // De-duplicate stacks by their region and name
-    const id = `${stack.region}|${stack.stackName}`
     // Keep only the first occurrence in case of duplicates
-    if (!Object.keys(res).includes(id) && !alreadyDeletedStackIds.includes(id))
-      res[id] = stack
+    if (
+      !Object.keys(res).includes(stack.id) &&
+      !alreadyDeletedStackIds.includes(stack.id)
+    )
+      res[stack.id] = stack
     return res
   }, {})
 

@@ -1,9 +1,7 @@
 import tracker from "./tracker.js"
 import { setRate } from "./throttle.js"
-import createChangeSet from "./createChangeSet/index.js"
 import del from "./del/index.js"
 import cleanup from "./cleanup/index.js"
-import deleteChangeSets from "./deleteChangeSets/index.js"
 import deploy from "./deploy/index.js"
 import errors from "./errors/index.js"
 import getStatus from "./getStatus/index.js"
@@ -17,10 +15,8 @@ setRate(2, 1000)
 
 // Define the commands available
 export default {
-  createChangeSet: autoComplete(createChangeSet),
   del: autoComplete(del),
   cleanup: autoComplete(cleanup),
-  deleteChangeSets: autoComplete(deleteChangeSets),
   deploy: autoComplete(deploy),
   errors: autoComplete(errors),
   getStatus: autoComplete(getStatus),

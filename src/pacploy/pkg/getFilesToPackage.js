@@ -7,8 +7,9 @@ import File from "./File.js"
  * Retrieve the list of unique local files that should be packaged to S3
  * This doesn't include templates of nested stacks
  * @param {String} templatePath The local path to the template to package
- * @return {Object} An object whose keys are the absolute path of files to
- * package, and values are File instances describing those files
+ * @return {Object<String, import('./File.js').default>} An object whose keys
+ * are the absolute path of files to package, and values are File instances
+ * describing those files
  */
 export default function getFilesToPackage(templatePath) {
   const toPackage = {}

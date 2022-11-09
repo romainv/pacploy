@@ -10,14 +10,11 @@ import waitForStatus from "../waitForStatus/index.js"
 
 /**
  * Prepares a stack for deployment: this will delete it if necessary
- * @param {import('./index.js').StackParam} params Stack parameters
+ * @param {import('../params/index.js').StackParams} stack Stack parameters
  * @return {Promise<String>} The prepared stack status
  */
-export default async function prepare({
-  region,
-  stackName,
-  forceDelete = false,
-}) {
+export default async function prepare(stack) {
+  const { region, stackName, forceDelete = false } = stack
   // Check current stack status
   let status = await getStatus({ region, stackName })
   if (!stableStatuses.includes(status))
@@ -38,7 +35,7 @@ export default async function prepare({
         ].join(" ")
       )
     // Delete stack
-    await del({ region, stackName, forceDelete })
+    await del(stack)
     // Update status
     status = await getStatus({ region, stackName })
   }

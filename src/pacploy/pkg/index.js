@@ -3,29 +3,17 @@ import getFilesToPackage from "./getFilesToPackage.js"
 import packageFiles from "./packageFiles.js"
 
 /**
- * @typedef {Object} TemplateParams The parameters of the stack to package
- * @param {String} region The stack's region
- * @param {String} templatePath The path to the template to package
- * @param {String|((Object) => String)} [deployBucket] A S3 bucket name to
- * package to
- * @param {String|((Object) => String)} [deployEcr] An ECR repo URI to package
- * images to
- * @param {Boolean} [forceUpload=false] If true, will re-upload
- * @param {Object} [stackTags] The stack tags will be applied to
- * the packaged file to enable mapping it to the stack it belongs to
- */
-
-/**
  * Package a template and its local resources to S3 for deployment
  * This aims to be equivalent to the 'aws cloudformation package' command of
  * AWS CLI, which doesn't exist in AWS JS SDK
- * @param {TemplateParams|TemplateParams[]} templates The templates to package
+ * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * The list of stack parameters to package
  * @param {Object} [params] Additional parameters to configure the function
  * @param {Boolean} [params.quiet] If true, will disable outputs
  * @return {Promise<String[]>} The URLs of the packaged templates
  */
-export default async function pkg(templates, { quiet = false } = {}) {
-  if (!Array.isArray(templates)) templates = [templates]
+export default async function pkg(stacks, { quiet = false } = {}) {
+  if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
 
   // Collect the files that need to be packaged and their dependencies for each
   // template. We don't attempt to de-duplicate as the local packages depend on
@@ -34,25 +22,25 @@ export default async function pkg(templates, { quiet = false } = {}) {
   // different buckets. Not impossible to bring some optimization in
   // de-duplication, but it is not worth the complexity at this stage
   if (!quiet) tracker.setStatus("retrieving files to package")
-  const templatesToPackage = templates.map((template) => ({
-    ...template,
-    toPackage: getFilesToPackage(template.templatePath),
+  const stacksToPackage = stacks.map((stack) => ({
+    ...stack,
+    toPackage: getFilesToPackage(stack.templatePath),
   }))
 
   // Package templates
-  const filesCount = templatesToPackage.reduce(
+  const filesCount = stacksToPackage.reduce(
     (count, { toPackage }) => count + Object.keys(toPackage).length,
     0
   )
   if (!quiet) tracker.setStatus(`packaging ${filesCount} files`)
   const packagedTemplates = await Promise.all(
-    templatesToPackage.map((templateToPackage) =>
-      packageFiles(templateToPackage)
+    stacksToPackage.map(({ toPackage, ...stack }) =>
+      packageFiles(toPackage, stack)
     )
   )
 
   // Verify that all files were packaged
-  for (const [index, { toPackage }] of templatesToPackage.entries()) {
+  for (const [index, { toPackage }] of stacksToPackage.entries()) {
     const expected = Object.keys(toPackage).length
     const actual = Object.keys(packagedTemplates[index]).length
     if (actual !== expected)
@@ -84,7 +72,7 @@ export default async function pkg(templates, { quiet = false } = {}) {
   // Return the paths to the packaged templates. If a template didn't need to
   // be packaged, return its original path
   const paths = []
-  for (const [index, { templatePath }] of templatesToPackage.entries())
+  for (const [index, { templatePath }] of stacksToPackage.entries())
     paths.push(
       Object.keys(packagedTemplates[index]).includes(templatePath)
         ? packagedTemplates[index][templatePath].location

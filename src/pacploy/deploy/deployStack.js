@@ -1,9 +1,9 @@
 import tracker from "../tracker.js"
 import sync from "../sync/index.js"
 import pkg from "../pkg/index.js"
-import createChangeSet from "../createChangeSet/index.js"
+import createChangeSet from "./createChangeSet.js"
 import waitForStatus from "../waitForStatus/index.js"
-import resolveArgs from "../resolveArgs/index.js"
+import resolveParams from "../params/index.js"
 import {
   CloudFormationClient,
   ExecuteChangeSetCommand,
@@ -17,53 +17,21 @@ import errors from "../errors/index.js"
 
 /**
  * Deploy a single stack
- * @param {import('./index.js').StackParam} stack The parameters of the stack
- * to deploy
+ * @param {import('../params/index.js').StackParams} stack The parameters of
+ * the stack to deploy
  * @return {Promise<Boolean>} Whether the deployment was successful
  */
-export default async function deployStack({
-  region,
-  stackName,
-  stackStatus,
-  dependsOn = [],
-  templatePath,
-  deployBucket,
-  deployEcr,
-  stackParameters,
-  stackTags,
-  forceUpload,
-  syncPath,
-}) {
+export default async function deployStack(stack) {
   // Resolve stack parameters
-  ;({ stackParameters, deployBucket, deployEcr } = await resolveArgs({
-    stackParameters,
-    deployBucket,
-    deployEcr,
-    dependsOn,
-  }))
+  const resolved = await resolveParams(stack)
+  const { region, stackName, syncPath } = resolved
 
   // Package and upload template to S3
-  const [templateURL] = await pkg(
-    {
-      region,
-      templatePath,
-      deployBucket,
-      deployEcr,
-      forceUpload,
-    },
-    { quiet: true }
-  )
+  const [templateURL] = await pkg(resolved, { quiet: true })
 
   // Create root change set
   const { changeSetArn, hasChanges } = await createChangeSet(
-    {
-      region,
-      templatePath: templateURL,
-      stackName,
-      stackStatus,
-      stackParameters,
-      stackTags,
-    },
+    { ...resolved, templatePath: templateURL },
     { quiet: true }
   )
   if (hasChanges) {
@@ -94,7 +62,7 @@ export default async function deployStack({
   }
 
   // Sync deployed infra if needed
-  if (syncPath) await sync({ region, stackName, syncPath }, { quiet: true })
+  if (syncPath) await sync(resolved, { quiet: true })
 
   // Indicate the deployment was successful
   return true

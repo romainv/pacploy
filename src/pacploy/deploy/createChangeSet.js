@@ -6,7 +6,7 @@ import {
 } from "../statuses.js"
 import getChangeSetArgs from "./getChangeSetArgs.js"
 import waitForStatus from "../waitForStatus/index.js"
-import deleteChangeSets from "../deleteChangeSets/index.js"
+import deleteChangeSets from "./deleteChangeSets.js"
 import {
   CloudFormationClient,
   CreateChangeSetCommand,
@@ -14,16 +14,8 @@ import {
 
 /**
  * Create a change set for the supplied stack
- * @param {Object} stack The stack parameters
- * @param {String} stack.region The stack's region
- * @param {String} stack.templatePath The path to the template (can be a URL)
- * @param {String} stack.stackName The name of the deployed stack
- * @param {String} stack.stackStatus The stack status ('NEW' if doesn't exist)
- * @param {Object} [stack.stackParameters] The stack parameters. Values can be
- * provided as a map with ParameterValue (String) and UsePreviousValue (Boolean)
- * or direclty a string which will be interpreted as ParameterValue
- * @param {Object} [stack.stackTags] The tags to apply to the stack
- * @param {Boolean} [stack.quiet=false] If true, will not update status
+ * @param {import('../params/index.js').ResolvedStackParams} stack The stack
+ * parameters
  * @param {Object} [params] Additional parameters
  * @param {Boolean} [params.quiet] Whether to disable outputs
  * @param {Number} [params.attempts=0] Keep track of attempts to avoid infinite
@@ -32,27 +24,14 @@ import {
  * any changes
  */
 export default async function createChangeSet(
-  {
-    region,
-    templatePath,
-    stackName,
-    stackStatus,
-    stackParameters = {},
-    stackTags = {},
-  },
+  stack,
   { quiet = false, attempts = 0 }
 ) {
+  const { region, stackName } = stack
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
   if (!quiet) tracker.setStatus("creating change set")
   // Retrieve creation arguments
-  const args = await getChangeSetArgs({
-    region,
-    templatePath,
-    stackName,
-    stackStatus,
-    stackParameters,
-    stackTags,
-  })
+  const args = await getChangeSetArgs(stack)
   // Create the requested change set
   let changeSetArn
   try {
@@ -72,17 +51,7 @@ export default async function createChangeSet(
       await deleteChangeSets({ region, stackName })
       // Try again if less than 3 attempts
       if (attempts < 3)
-        return createChangeSet(
-          {
-            region,
-            templatePath,
-            stackName,
-            stackStatus,
-            stackParameters,
-            stackTags,
-          },
-          { quiet, attempts: attempts + 1 }
-        )
+        return createChangeSet(stack, { quiet, attempts: attempts + 1 })
       else throw err // Fail if too many attempts
     } else throw err // Unrecognized error
   }
