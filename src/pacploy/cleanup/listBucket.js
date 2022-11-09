@@ -86,7 +86,7 @@ async function getTags(region, bucket, key) {
   )
   // De-serialize the TagSet
   return TagSet.reduce((tags, { Key, Value }) => {
-    tags[Key] = Value.split(",") // Handle multiple comma-separated values
+    tags[Key] = Value.split(":") // Handle multiple comma-separated values
     return tags
   }, {})
 }

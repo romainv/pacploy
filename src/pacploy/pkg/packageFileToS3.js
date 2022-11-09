@@ -120,7 +120,7 @@ async function updateTags(stackTags, region, bucket, key) {
     return tags
   }, {})
 
-  // Merge values (comma-separated) in case multiple stacks use the same file
+  // Merge values (separated by :) in case multiple stacks use the same file
   const allKeys = Array.from(
     new Set(Object.keys(existingTags).concat(Object.keys(stackTags)))
   )
@@ -128,8 +128,8 @@ async function updateTags(stackTags, region, bucket, key) {
     const existing = existingTags[key] || ""
     const updated = stackTags[key] || ""
     merged[key] = Array.from(
-      new Set(existing.split(",").concat(updated.split(",")))
-    ).join(",")
+      new Set(existing.split(":").concat(updated.split(":")))
+    ).join(":")
     return merged
   }, {})
 

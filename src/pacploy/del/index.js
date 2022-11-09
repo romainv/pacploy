@@ -11,6 +11,7 @@ import resolveParams from "../params/index.js"
  */
 export default async function del(stacks) {
   if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
+
   // Check if at least one forceDelete parameter is set
   if (
     stacks.reduce(
@@ -39,7 +40,7 @@ export default async function del(stacks) {
   ).filter(Boolean)
 
   // Remove potential duplicates, already deleted stacks and format as map
-  const _stacks = stacks.reduce((res, stack) => {
+  const _stacks = resolvedStacks.reduce((res, stack) => {
     // Keep only the first occurrence in case of duplicates
     if (
       !Object.keys(res).includes(stack.id) &&
