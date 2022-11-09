@@ -27,6 +27,8 @@ export default async function pruneRetainedResources(stacks) {
       return dedup
     }, [])
 
+  if (Object.keys(stacksToPrune).length === 0) return
+
   // Collect the Arns of live resources across all stacks
   tracker.setStatus(`retrieving live resources`)
   const liveResourceArns = (

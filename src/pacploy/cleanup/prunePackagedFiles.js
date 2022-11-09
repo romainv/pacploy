@@ -25,12 +25,16 @@ export default async function prunePackagedFiles(stacks) {
   // Resolve stacks parameters
   tracker.setStatus(`resolving stacks parameters`)
   const _stacks = (await Promise.all(stacks.map(resolveParams)))
+    // Only consider stacks with a deployment bucket flagged to be pruned
+    .filter(({ noPrune, deployBucket }) => !noPrune && deployBucket)
     // Remove potential duplicates and format as a map
     .reduce((res, stack) => {
       // Keep only the first occurrence in case of duplicates
       if (!Object.keys(res).includes(stack.id)) res[stack.id] = stack
       return res
     }, {})
+
+  if (Object.keys(_stacks).length === 0) return
 
   // Select the stacks which have files to prune
   tracker.setStatus(`retrieving files to prune`)
@@ -39,15 +43,11 @@ export default async function prunePackagedFiles(stacks) {
     {},
     ...(
       await Promise.all(
-        Object.entries(_stacks)
-          // Only consider stacks with a deployment bucket flagged to be pruned
-          .filter(([, { noPrune, deployBucket }]) => !noPrune && deployBucket)
-          .map(async ([id, stack]) => {
-            const pruningParams = await getPruningParams(stack)
-            // Check if the stack needs pruning, if so retain its params
-            if (await needsPruning(pruningParams))
-              return { [id]: pruningParams }
-          })
+        Object.entries(_stacks).map(async ([id, stack]) => {
+          const pruningParams = await getPruningParams(stack)
+          // Check if the stack needs pruning, if so retain its params
+          if (await needsPruning(pruningParams)) return { [id]: pruningParams }
+        })
       )
     ).filter(Boolean)
   )
