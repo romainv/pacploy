@@ -22,48 +22,55 @@ import errors from "../errors/index.js"
  * @return {Promise<Boolean>} Whether the deployment was successful
  */
 export default async function deployStack(stack) {
-  // Resolve stack parameters
-  const resolved = await resolveParams(stack)
-  const { region, stackName, syncPath } = resolved
+  let deployStarted = false // Will turn true once the deployment started
+  try {
+    // Resolve stack parameters
+    const resolved = await resolveParams(stack)
+    const { region, stackName, syncPath } = resolved
 
-  // Package and upload template to S3
-  const [templateURL] = await pkg(resolved, { quiet: true })
+    // Package and upload template to S3
+    const [templateURL] = await pkg(resolved, { quiet: true })
 
-  // Create root change set
-  const { changeSetArn, hasChanges } = await createChangeSet(
-    { ...resolved, templatePath: templateURL },
-    { quiet: true }
-  )
-  if (hasChanges) {
-    const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-    // If stack has changes to execute, deploy them
-    await call(
-      cf,
-      cf.send,
-      new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
+    // Create root change set
+    const { changeSetArn, hasChanges } = await createChangeSet(
+      { ...resolved, templatePath: templateURL },
+      { quiet: true }
     )
-    const deployStatus = await waitForStatus({
-      region,
-      arn: stackName,
-      success: deploySuccessStatuses,
-      failure: deployFailedStatuses,
-      msg: "",
-    })
-    if (deployStatus === true) {
-      // If deployment succeeded
-      tracker.interruptSuccess(`Deployed stack ${stackName}`)
-    } else {
-      // If deployment failed
-      tracker.interruptError(`Failed to deploy stack ${stackName}`)
-      await errors({ region, stackName })
-      process.exitCode = 1
-      return false
+    if (hasChanges) {
+      const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+      // If stack has changes to execute, deploy them
+      await call(
+        cf,
+        cf.send,
+        new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
+      )
+      deployStarted = true
+      const deployStatus = await waitForStatus({
+        region,
+        arn: stackName,
+        success: deploySuccessStatuses,
+        failure: deployFailedStatuses,
+        msg: "",
+      })
+      if (typeof deployStatus !== "string") {
+        // If deployment succeeded
+        tracker.interruptSuccess(`Deployed stack ${stackName}`)
+      } else {
+        // If deployment failed
+        throw new Error(deployStatus)
+      }
     }
+
+    // Sync deployed infra if needed
+    if (syncPath) await sync(resolved, { quiet: true })
+
+    // Indicate the deployment was successful
+    return true
+  } catch (err) {
+    tracker.interruptError(`Failed to deploy stack ${stack.stackName}`)
+    if (deployStarted)
+      await errors({ region: stack.region, stackName: stack.stackName })
+    process.exitCode = 1
+    return false
   }
-
-  // Sync deployed infra if needed
-  if (syncPath) await sync(resolved, { quiet: true })
-
-  // Indicate the deployment was successful
-  return true
 }
