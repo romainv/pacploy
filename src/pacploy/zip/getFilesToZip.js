@@ -8,10 +8,7 @@ import { findUp } from "find-up"
 import { locatePath } from "locate-path"
 import { readFileSync, readFile, existsSync } from "fs"
 import getFilesMatching from "./getFilesMatching.js"
-import Module, { createRequire } from "module"
-import { resolvePackageSync } from "package-resolver"
-
-const require = createRequire(import.meta.url)
+import getDependencies from "./getDependencies.js"
 
 /**
  * Collect the list of files to add to the zip archive
@@ -147,69 +144,4 @@ async function readGlobPatterns(file) {
           )
     )
   )
-}
-
-/**
- * Retrieve the list of nested dependencies
- * @param {Array} depList The parent list of dependencies to check
- * @param {String} [cwd] The directory from which to resolve dependencies
- * @param {Set} [ignore] A list of files to ignore
- * @param {Map} [deps] The map of dependency names to their full path
- * @param {Array} [bundledDependencies] The original list of dependencies to
- * bundle: those will be included regardless of the ignored files
- * @return {Map} The map of dependency names to their full path
- */
-function getDependencies(
-  depList,
-  cwd,
-  ignore = new Set(),
-  deps = new Map(),
-  bundledDependencies = depList
-) {
-  depList.forEach((dep) => {
-    // Retrieve the dependency location by running require.resolve from the
-    // package directory, and looking for package.json instead of the default
-    // 'main' entry which may be nested further
-    let depPath
-    try {
-      depPath = require.resolve(join(dep, "package.json"), {
-        paths: Module._nodeModulePaths(cwd),
-      })
-    } catch (err) {
-      let finalError = err
-      if (err.code === "ERR_PACKAGE_PATH_NOT_EXPORTED")
-        // For ESM modules, resolving package.json may fail if it is not
-        // included in the module's exports (see
-        // github.com/nodejs/node/issues/33460). In this case, we fall back to
-        // an alternative method to lookup the dependency path
-        try {
-          depPath = join(resolvePackageSync(dep, cwd), "package.json")
-        } catch (err2) {
-          finalError = err2 // Use the latest error instead
-        }
-      if (!depPath)
-        // If the path still couldn't be found
-        throw new Error(
-          `Unable to locate dependency ${dep} from ${cwd}: ${finalError}`
-        )
-    }
-    if (bundledDependencies.includes(dep) || !ignore.has(depPath)) {
-      // If the current package is not ignored, or has been specified in the
-      // list of dependencies to bundle
-      deps.set(dep, dirname(depPath)) // Add dependency dir to the list
-      // Recursively add sub-dependencies, if any (read from package.json)
-      const { dependencies = {} } = existsSync(depPath)
-        ? // We may have found the package, but it may not have package.json
-          JSON.parse(readFileSync(depPath, "utf-8"))
-        : {}
-      getDependencies(
-        Object.keys(dependencies),
-        dirname(depPath),
-        ignore,
-        deps,
-        depList // Preserve the original list of dependencies to bundle
-      )
-    }
-  })
-  return deps
 }

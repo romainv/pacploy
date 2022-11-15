@@ -25,7 +25,7 @@ export default async function deleteStacks(stacks) {
         updateTracker(stacks)
         const res = await deleteStack({ region, stackName })
         if (typeof res === "string") {
-          tracker.interruptError(`Failed to delete stack ${stackName}`)
+          tracker.interruptError(`Failed to delete stack ${stackName}: ${res}`)
           stacks[id].deleteStatus = "failed"
           updateTracker(stacks)
           return // Don't process further stacks

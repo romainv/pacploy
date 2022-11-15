@@ -67,9 +67,12 @@ export default async function deployStack(stack) {
     // Indicate the deployment was successful
     return true
   } catch (err) {
-    tracker.interruptError(`Failed to deploy stack ${stack.stackName}`)
     if (deployStarted)
       await errors({ region: stack.region, stackName: stack.stackName })
+    else
+      tracker.interruptError(
+        `Failed to deploy stack ${stack.stackName}: ${err}`
+      )
     process.exitCode = 1
     return false
   }

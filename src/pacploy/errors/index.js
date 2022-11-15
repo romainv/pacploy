@@ -27,7 +27,6 @@ export default async function getErrors({
   parentStackId,
 }) {
   const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
-  tracker.setStatus("retrieving errors")
   // Retrieve all relevant events
   let nextToken,
     lastTimestamp,
@@ -124,8 +123,10 @@ export default async function getErrors({
     },
     Promise.resolve({})
   )
-  if (!parentStackId)
+  if (!parentStackId) {
     // Display errors before final return
-    displayEvents.call(tracker, errors)
+    tracker.interruptError(`Failed to deploy stack ${stackName}`)
+    displayEvents(errors)
+  }
   return errors
 }
