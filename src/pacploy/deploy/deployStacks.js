@@ -19,7 +19,7 @@ export default async function deployStacks(stacks) {
   // Deploy all the stacks which are ready to
   await Promise.all(
     stacksReadyToDeploy.map(async (stack) => {
-      const { index } = stack
+      const { index, region, stackName } = stack
       // Indicate the stack is being deployed
       stacks[index].deploymentStatus = "in progress"
       updateTracker(stacks)
@@ -29,6 +29,19 @@ export default async function deployStacks(stacks) {
         // If the deployment failed
         stacks[index].deploymentStatus = "failed"
         updateTracker(stacks)
+        const dependents = getDependents({ region, stackName }, stacks)
+        if (dependents.length > 0) {
+          // If stack had dependents, warn they won't be deployed
+          const uniqueNames = new Set(
+            dependents.map(({ stackName }) => stackName)
+          )
+          const s = uniqueNames.size > 1 ? "s" : ""
+          tracker.interruptWarn(
+            `Skipped deployment of ${
+              uniqueNames.size
+            } dependent stack${s}: ${Array.from(uniqueNames).join(", ")}`
+          )
+        }
         return // Don't process further stacks
       }
       // If the deployment was successful
@@ -102,4 +115,35 @@ function getDependencies({ dependsOn = [] }, stacks) {
         break
       }
   return dependencies
+}
+
+/**
+ * Retrieve the stack parameters of the stacks that depend on the supplied one
+ * @param {Object} stack The stack to lookup
+ * @param {String} stack.region The stack's region
+ * @param {String} stack.stackName The stack's name
+ * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * The stack parameters to filter
+ * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * subset of stacks that depend on the supplied one
+ */
+function getDependents({ region, stackName }, stacks) {
+  // For all stacks, select those that depend on the supplied one
+  return stacks.reduce((dependents, stack) => {
+    if (Array.isArray(stack.dependsOn))
+      for (const { region: curRegion, name: curStackName } of stack.dependsOn)
+        if (curRegion === region && curStackName === stackName) {
+          // Add the current stack as a dependent
+          dependents.push(stack)
+          // Add the dependent's dependents as well
+          dependents = dependents.concat(
+            getDependents(
+              { region: stack.region, stackName: stack.stackName },
+              stacks
+            )
+          )
+          break
+        }
+    return dependents
+  }, [])
 }
