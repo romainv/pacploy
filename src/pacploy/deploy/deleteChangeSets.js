@@ -5,6 +5,7 @@ import {
   CloudFormationClient,
   DeleteChangeSetCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Delete the change sets associated with a stack
@@ -20,7 +21,11 @@ export default async function deleteChangeSets({
   stackName,
   confirm = true,
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieve list of change sets
   const changeSets = await getChangeSets({ region, stackName })
   // Ask confirmation

@@ -7,7 +7,6 @@ import errors from "./errors/index.js"
 import getStatus from "./getStatus/index.js"
 import pkg from "./pkg/index.js"
 import sync from "./sync/index.js"
-import waitForStatus from "./waitForStatus/index.js"
 import zip from "./zip/index.js"
 
 // Set a safe request limit to AWS API
@@ -19,10 +18,9 @@ export default {
   cleanup: autoComplete(cleanup),
   deploy: autoComplete(deploy),
   errors: autoComplete(errors),
-  getStatus: autoComplete(getStatus),
+  status: autoComplete(getStatus),
   pkg: autoComplete(pkg),
   sync: autoComplete(sync),
-  waitForStatus: autoComplete(waitForStatus),
   zip: autoComplete(zip),
 }
 

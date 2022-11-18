@@ -9,6 +9,7 @@ import getArchiveBasename from "../zip/getArchiveBasename.js"
 import { URL } from "url"
 import { ECRClient, GetAuthorizationTokenCommand } from "@aws-sdk/client-ecr"
 import { readFileSync, existsSync } from "fs"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 const docker = new Docker()
 
@@ -112,7 +113,11 @@ export default async function packageFileToECR(
  * @return {Object} The auth parameters
  */
 async function getToken(region) {
-  const ecr = new ECRClient({ apiVersion: "2015-09-21", region })
+  const ecr = new ECRClient({
+    apiVersion: "2015-09-21",
+    region,
+    credentialDefaultProvider,
+  })
   const { authorizationData: [{ authorizationToken, proxyEndpoint }] = [] } =
     await call(
       ecr,

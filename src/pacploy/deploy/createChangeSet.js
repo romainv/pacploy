@@ -11,6 +11,7 @@ import {
   CloudFormationClient,
   CreateChangeSetCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Create a change set for the supplied stack
@@ -28,7 +29,11 @@ export default async function createChangeSet(
   { quiet = false, attempts = 0 }
 ) {
   const { region, stackName } = stack
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   if (!quiet) tracker.setStatus("creating change set")
   // Retrieve creation arguments
   const args = await getChangeSetArgs(stack)

@@ -5,6 +5,7 @@ import {
   CloudFormationClient,
   ValidateTemplateCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Validate a local template
@@ -15,7 +16,11 @@ import {
  * error message otherwise
  */
 export default async function validate({ region, templatePath }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   try {
     await call(
       cf,

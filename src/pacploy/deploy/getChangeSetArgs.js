@@ -6,6 +6,7 @@ import {
   GetTemplateSummaryCommand,
 } from "@aws-sdk/client-cloudformation"
 import getStatus from "../getStatus/index.js"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Generate valid arguments to provide to the change set creation request
@@ -19,7 +20,11 @@ export default async function getChangeSetArgs({
   stackParameters,
   stackTags,
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Convert templatePath to a Cloudformation argument
   const templateArg = templatePath.startsWith("http")
     ? { TemplateURL: templatePath }

@@ -4,6 +4,7 @@ import {
   ListObjectVersionsCommand,
 } from "@aws-sdk/client-s3"
 import { call } from "../throttle.js"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * List the objects of a bucket with pagination
@@ -20,7 +21,11 @@ export default async function listBucket(
   versionIdMarker,
   keyMarker
 ) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
 
   // Retrieve object versions
   const {
@@ -78,7 +83,11 @@ export default async function listBucket(
  * @return {Promise<Object<String, String[]>>} The object's tags
  */
 async function getTags(region, bucket, key) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
   const { TagSet } = await call(
     s3,
     s3.send,

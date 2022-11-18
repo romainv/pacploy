@@ -3,6 +3,7 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve outputs of a deployed stack
@@ -12,7 +13,11 @@ import {
  * @return {Promise<Object>} An object containing the stack outputs
  */
 export default async function getStackInfo({ region, stackName }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieve stack outputs
   const { Stacks: [{ Outputs = [] }] = [] } = await call(
     cf,

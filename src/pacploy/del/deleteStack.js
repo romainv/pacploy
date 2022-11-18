@@ -10,6 +10,7 @@ import {
   DescribeStacksCommand,
   DeleteStackCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Delete an existing stack (not its retained resources)
@@ -20,7 +21,11 @@ import {
  * the status reason for the failure
  */
 export default async function deleteStack({ region, stackName }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieving stackId to identify the stack after it's been deleted
   const { Stacks: [{ StackId: stackId } = { StackId: undefined }] = [] } =
     await call(cf, cf.send, new DescribeStacksCommand({ StackName: stackName }))

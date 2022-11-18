@@ -4,6 +4,7 @@ import {
   ResourceGroupsTaggingAPIClient,
   GetResourcesCommand,
 } from "@aws-sdk/client-resource-groups-tagging-api"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve remaining resources based on their tags. This allows to identify
@@ -29,6 +30,7 @@ export default async function listRetainedResourceArns({
   const rg = new ResourceGroupsTaggingAPIClient({
     apiVersion: "2017-01-26",
     region,
+    credentialDefaultProvider,
   })
   // Retrieve list of resources with the matching RootStackName tag
   const { ResourceTagMappingList = [], PaginationToken } = await call(

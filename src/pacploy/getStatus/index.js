@@ -4,6 +4,7 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve the status of a stack
@@ -17,7 +18,11 @@ export default async function getStatus(
   { region, stackName },
   { quiet = true } = {}
 ) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   let status
   // Retrieve basic stack information, separating serialized values
   if (!quiet) tracker.setStatus("retrieving stack status")

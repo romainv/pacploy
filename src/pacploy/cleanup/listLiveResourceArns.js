@@ -6,6 +6,7 @@ import {
   ListStackResourcesCommand,
   DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve the resources associated with a live stack, recursively for nested
@@ -21,7 +22,11 @@ export default async function listLiveResourceArns({
   stackName,
   nextToken,
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   tracker.setStatus("retrieving stack resources")
   // Retrieve list of resources for the current stack
   const { StackResourceSummaries = [], NextToken } = await call(

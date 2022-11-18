@@ -17,6 +17,7 @@ import {
 } from "@aws-sdk/client-cognito-identity"
 import { AthenaClient, DeleteWorkGroupCommand } from "@aws-sdk/client-athena"
 import { ECRClient, DeleteRepositoryCommand } from "@aws-sdk/client-ecr"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Delete a resource given its ARN, with support for cleaning up that resource
@@ -75,9 +76,21 @@ const deleteFunctions = {
  * @param {String} bucket The bucket's name
  */
 async function deleteS3Bucket(region, bucket) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
   await emptyBucket({ region, bucket })
-  await call(s3, s3.send, new DeleteBucketCommand({ Bucket: bucket }))
+  await call(
+    s3,
+    s3.send,
+    new DeleteBucketCommand({
+      Bucket: bucket,
+      credentialDefaultProvider,
+      credentialDefaultProvider,
+    })
+  )
 }
 
 /**
@@ -86,7 +99,11 @@ async function deleteS3Bucket(region, bucket) {
  * @param {String} repositoryName The repository's name
  */
 async function deleteECR(region, repositoryName) {
-  const ecr = new ECRClient({ apiVersion: "2015-09-21", region })
+  const ecr = new ECRClient({
+    apiVersion: "2015-09-21",
+    region,
+    credentialDefaultProvider,
+  })
   await call(
     ecr,
     ecr.send,
@@ -100,7 +117,11 @@ async function deleteECR(region, repositoryName) {
  * @param {String} tableName The table's name
  */
 async function deleteDDBTable(region, tableName) {
-  const db = new DynamoDBClient({ apiVersion: "2012-08-10", region })
+  const db = new DynamoDBClient({
+    apiVersion: "2012-08-10",
+    region,
+    credentialDefaultProvider,
+  })
   await call(db, db.send, new DeleteTableCommand({ TableName: tableName }))
 }
 
@@ -114,6 +135,7 @@ async function deleteCognitoUserPool(region, userPoolId, arn) {
   const userPool = new CognitoIdentityProviderClient({
     apiVersion: "2016-04-18",
     region,
+    credentialDefaultProvider,
   })
   try {
     // Start by removing tags as this is not automatic
@@ -155,6 +177,7 @@ async function deleteCognitoIdentityPool(region, identityPoolId, arn) {
   const identityPool = new CognitoIdentityClient({
     apiVersion: "2014-06-30",
     region,
+    credentialDefaultProvider,
   })
   try {
     // Start by removing tags as this is not automatic
@@ -196,7 +219,11 @@ async function deleteCognitoIdentityPool(region, identityPoolId, arn) {
  * @param {String} workgroup The workgroup's name
  */
 async function deleteAthenaWorkgroup(region, workgroup) {
-  const athena = new AthenaClient({ apiVersion: "2017-05-18", region })
+  const athena = new AthenaClient({
+    apiVersion: "2017-05-18",
+    region,
+    credentialDefaultProvider,
+  })
   await call(
     athena,
     athena.send,

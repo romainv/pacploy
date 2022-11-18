@@ -6,6 +6,7 @@ import {
   CloudFormationClient,
   DescribeStackEventsCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve the errors for a failed stack deployment, recursively for nested
@@ -26,7 +27,11 @@ export default async function getErrors({
   timestamp2,
   parentStackId,
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieve all relevant events
   let nextToken,
     lastTimestamp,

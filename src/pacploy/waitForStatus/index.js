@@ -5,6 +5,7 @@ import {
   DescribeChangeSetCommand,
   DescribeStacksCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Waits until a stack or a change set is in a particular status
@@ -27,44 +28,40 @@ export default async function waitForStatus({
   failure = [],
   msg = "checking status",
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Check if the supplied arn is that of a change set or a stack
   const isChangeSet = /arn:aws:cloudformation:[^:]+:[^:]+:changeSet\/.+/.test(
     arn
   )
-  try {
-    let status, statusReason
-    do {
-      // Retrieve status
-      if (isChangeSet) {
-        // Retrieve status of a change set
-        ;({ Status: status, StatusReason: statusReason } = await call(
-          cf,
-          cf.send,
-          new DescribeChangeSetCommand({ ChangeSetName: arn })
-        ))
-      } else {
-        // Retrieve status of a stack
-        ;({
-          Stacks: [{ StackStatus: status, StackStatusReason: statusReason }] = [
-            { StackStatus: undefined, StackStatusReason: undefined },
-          ],
-        } = await call(
-          cf,
-          cf.send,
-          new DescribeStacksCommand({ StackName: arn })
-        ))
-      }
-      if (msg) tracker.setStatus(`${msg} (${status})`)
-      // Wait until next check
-      await new Promise((res) => setTimeout(res, 1000))
-    } while (
-      !status ||
-      (!success.includes(status) && !failure.includes(status))
-    )
-    return success.includes(status) ? true : statusReason || status || ""
-  } catch (err) {
-    tracker.interruptError(err.message)
-    return err.message
-  }
+  let status, statusReason
+  do {
+    // Retrieve status
+    if (isChangeSet) {
+      // Retrieve status of a change set
+      ;({ Status: status, StatusReason: statusReason } = await call(
+        cf,
+        cf.send,
+        new DescribeChangeSetCommand({ ChangeSetName: arn })
+      ))
+    } else {
+      // Retrieve status of a stack
+      ;({
+        Stacks: [{ StackStatus: status, StackStatusReason: statusReason }] = [
+          { StackStatus: undefined, StackStatusReason: undefined },
+        ],
+      } = await call(
+        cf,
+        cf.send,
+        new DescribeStacksCommand({ StackName: arn })
+      ))
+    }
+    if (msg) tracker.setStatus(`${msg} (${status})`)
+    // Wait until next check
+    await new Promise((res) => setTimeout(res, 1000))
+  } while (!status || (!success.includes(status) && !failure.includes(status)))
+  return success.includes(status) ? true : statusReason || status || ""
 }

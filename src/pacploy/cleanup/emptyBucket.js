@@ -1,6 +1,7 @@
 import { call } from "../throttle.js"
 import { S3Client, DeleteObjectsCommand } from "@aws-sdk/client-s3"
 import listBucket from "./listBucket.js"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Delete all objects inside a versioned S3 bucket
@@ -14,7 +15,11 @@ export default async function emptyBucket({
   tagsFilter,
   exclude = [],
 }) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
   // Remove object versions first, then delete markers
   let nextVersionIdMarker,
     nextKeyMarker,

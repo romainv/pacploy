@@ -14,6 +14,7 @@ import {
   deployFailed as deployFailedStatuses,
 } from "../statuses.js"
 import errors from "../errors/index.js"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Deploy a single stack
@@ -37,7 +38,11 @@ export default async function deployStack(stack) {
       { quiet: true }
     )
     if (hasChanges) {
-      const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+      const cf = new CloudFormationClient({
+        apiVersion: "2010-05-15",
+        region,
+        credentialDefaultProvider,
+      })
       // If stack has changes to execute, deploy them
       await call(
         cf,

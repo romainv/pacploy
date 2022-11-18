@@ -170,8 +170,8 @@ export class Tracker extends ProgressBar {
    */
   interruptError(str) {
     return this.stream.isTTY
-      ? this.interrupt(`${colors.bold.black.bgRed(" ERROR ")} ${str}`)
-      : this.interrupt(`[ ERROR ] ${str}`)
+      ? this.interrupt(`${colors.bold.black.bgRed(" FAIL ")} ${str}`)
+      : this.interrupt(`[ FAIL ] ${str}`)
   }
 
   /**

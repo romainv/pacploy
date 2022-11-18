@@ -13,6 +13,7 @@ import {
   HeadObjectCommand,
 } from "@aws-sdk/client-s3"
 import { Upload } from "@aws-sdk/lib-storage"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Package a local file to S3 if necessary
@@ -32,7 +33,11 @@ export default async function packageFileToS3(
   file,
   { region, deployBucket, dependencies, forceUpload = false, stackTags = {} }
 ) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieve content to upload and its md5 hash
   let content, hash
   if (
@@ -106,7 +111,11 @@ export default async function packageFileToS3(
  * @param {String} key The file's key
  */
 async function updateTags(stackTags, region, bucket, key) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
 
   // Retrieve existing tags if any, and deserialize them
   const existingTags = (

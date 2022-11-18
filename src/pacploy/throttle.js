@@ -1,5 +1,5 @@
 // Rate limit to enforce, defined as rate=limit/interval
-let limit = 100 // Max requests allowed during interval
+let limit = 0 // Max requests allowed during interval (0 = disabled)
 let interval = 1000 // Interval duration in ms to cap requests
 const queue = new Map() // Log of all requests received
 
@@ -22,7 +22,10 @@ export default function throttle(fn) {
  * result
  */
 export function call(thisArg, fn, ...args) {
-  if (typeof fn !== "function") throw Error("throttle.call expected a function")
+  if (typeof fn !== "function") throw Error("throttle.call expects a function")
+  // If throttling was disabled
+  if (!limit) return fn.apply(thisArg, args)
+  // If throttling is enabled
   let timeout // Will delay the function execution to meet the rate limit
   // Delay the function execution by as many intervals as necessary to
   // process entire queue while meeting the rate limit

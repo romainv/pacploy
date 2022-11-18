@@ -6,6 +6,7 @@ import {
   GetTemplateCommand,
 } from "@aws-sdk/client-cloudformation"
 import md5 from "./md5.js"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve the list of files that were packaged to S3 and are being used by
@@ -25,7 +26,11 @@ export default async function listPackagedFiles({
   stackName,
   deployBucket,
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   const packaged = []
   // Retrieve the template of the provided stack
   const { TemplateBody } = await call(

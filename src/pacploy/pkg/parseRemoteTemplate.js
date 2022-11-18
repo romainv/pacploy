@@ -2,6 +2,7 @@ import { yamlParse } from "yaml-cfn"
 import { call } from "../throttle.js"
 import ResourceProperty from "./ResourceProperty.js"
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Recursively parse a remote template's resource properties and execute a
@@ -16,7 +17,11 @@ export default async function parseRemoteTemplate({
   templateBody,
   fn,
 }) {
-  const s3 = new S3Client({ apiVersion: "2006-03-01", region })
+  const s3 = new S3Client({
+    apiVersion: "2006-03-01",
+    region,
+    credentialDefaultProvider,
+  })
   // Parse the template depending on its format
   const template = yamlParse(templateBody)
   // Recursively package the properties of the template resources

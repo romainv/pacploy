@@ -3,6 +3,7 @@ import {
   CloudFormationClient,
   ListChangeSetsCommand,
 } from "@aws-sdk/client-cloudformation"
+import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
  * Retrieve the change sets associated with a stack
@@ -21,7 +22,11 @@ export default async function getChangeSets({
   nextToken,
   changeSets = [],
 }) {
-  const cf = new CloudFormationClient({ apiVersion: "2010-05-15", region })
+  const cf = new CloudFormationClient({
+    apiVersion: "2010-05-15",
+    region,
+    credentialDefaultProvider,
+  })
   // Retrieve the next page of change sets
   const { Summaries = [], NextToken } = await call(
     cf,
