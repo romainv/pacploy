@@ -25,8 +25,8 @@ import getStatus from "../getStatus/index.js"
  * retained resources assiciated with the supplied stack
  * @property {Boolean} [cleanup=false] If true, will delete retained
  * resources associated with the stack
- * @property {String} [syncPath] If provided, will sync the deployed infra
- * locally
+ * @property {String|String[]} [syncPath] If provided, will sync the deployed
+ * infra outputs locally
  * @property {Boolean} [noOverride=false] If provided, the sync command will not
  * override existing file
  * @property {Number} [index] The stack's index in a list to stacks (set
@@ -55,7 +55,7 @@ import getStatus from "../getStatus/index.js"
  * associated with the supplied stack
  * @property {Boolean} cleanup If true, will delete retained resources 
  * associated with the stack
- * @property {String} syncPath If provided, will sync the deployed infra
+ * @property {String[]} syncPath If provided, will sync the deployed infra
  * locally
  * @property {Boolean} noOverride=false If provided, the command will not
  * override existing file
@@ -83,7 +83,7 @@ export default async function resolveParams({
   noPrune = false,
   cleanup = false,
   noRetained = !cleanup,
-  syncPath,
+  syncPath = [],
   noOverride = false,
   index,
   id = `${region}|${stackName}`,
@@ -121,6 +121,8 @@ export default async function resolveParams({
     if (typeof deployBucket === "function") deployBucket = deployBucket(outputs)
     if (typeof deployEcr === "function") deployEcr = deployEcr(outputs)
   }
+  // Convert syncPath to a list
+  if (!Array.isArray(syncPath)) syncPath = [syncPath]
 
   // Return processed arguments
   return {
