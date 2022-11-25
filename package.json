@@ -1,6 +1,6 @@
 {
   "name": "pacploy",
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Package and deploy CloudFormation templates with a simple CLI",
   "author": "Romain Vermeulen",
   "license": "MIT",
@@ -26,10 +26,10 @@
     "CLI",
     "node"
   ],
-  "exports": "./src/index.js",
+  "exports": "./src/pacploy/index.js",
   "type": "module",
   "bin": {
-    "pacploy": "./pacploy.js"
+    "pacploy": "./src/bin.js"
   },
   "scripts": {
     "test": "jest",
@@ -50,12 +50,12 @@
     "ansi-colors": "^4.1.3",
     "archiver": "^5.3.1",
     "dockerode": "^3.3.4",
+    "dotenv": "^16.0.3",
     "enquirer": "^2.3.6",
     "find-up": "^6.3.0",
     "glob": "^8.0.3",
     "locate-path": "^7.1.1",
     "on-change": "^4.0.1",
-    "package-resolver": "^1.1.0",
     "progress": "^2.0.3",
     "tmp": "^0.2.1",
     "yaml-cfn": "^0.3.2",
@@ -85,7 +85,7 @@
     "src/**/*.js"
   ],
   "engines": {
-    "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+    "node": "^14.13.1 || >=16.0.0"
   },
   "prettier": {
     "semi": false

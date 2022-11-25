@@ -60,7 +60,7 @@ pacploy <command>
 
 Commands:
   pacploy deploy     Deploy a stack
-  pacploy sync       Download stack outputs in JSON format
+  pacploy sync       Download stack outputs in JSON or .env format
   pacploy delete     Delete a stack
   pacploy package    Package dependencies to S3 or ECR
   pacploy status     Retrieve the status of a stack
@@ -133,7 +133,9 @@ Options:
   --stack-name       The stack name or stack id [string] [required]
   --region           The region in which the stack is deployed
                      [string] [required]
-  --sync-path, --to  Path to where stack outputs should be saved [string]
+  --sync-path, --to  Path to where stack outputs should be saved. Format is
+                     determined by file extension (supported: .json, .env)
+                     [string]
   --no-override      If provided, the command will not override existing file
                      [boolean] [default: false]
 ```
@@ -309,7 +311,7 @@ files get packaged.
 
 ## Configuration
 
-### Deployment
+### Deploying a single stack
 
 Besides the CLI options described above for all
 [available commands](#available-commands), you can configure pacploy's
@@ -340,32 +342,53 @@ example:
 }
 ```
 
-The configuration can also be a list of individual configurations. In this case
-you can specify options as functions, which will take as an argument the list
-of results from previous configurations. For instance the below config file
-enables to pass along the outputs of the first stack to the second when using
-the [`deploy`](#deploy-a-stack) command:
+### Deploying a set of stacks
+
+Pacploy supports managing a set of inter-dependent stacks via a config file.
+To enable deploying, deleting or syncing multiple stacks in a single command,
+specify a list of individual configuration objects.  
+It is possible to define the relationship between stacks by specifying on
+which stacks they depend with the `dependsOn` parameter. The deployment and
+deletion commands will take this into account to optimize the overall
+deployment while respecting the dependencies. Dependencies can be cross-region
+as well.  
+This also enables to use a dependent stack's outputs as parameters by passing
+the `stackParameters` as a function which takes as input an object where
+the outputs are mapped to the dependent stack's name.  
+For instance the below config file enables deploys a stack and its dependent:
 
 ```js
 // pacploy.config.js
 
-// Sample config which deploys a first stack that creates a S3 bucket used in a
-second stack to package local artifacts
+// Sample config which deploys a set of inter-dependent stacks
 const region = "us-east-1"
-module.exports = [
+export default [
+  // This stack creates a S3 bucket used to deploy resources of other stacks
   {
     region,
-    stackName: "deployment-resources",
-    templatePath: "deployment_infra.yaml", // Outputs 'bucketName'
+    stackName: "stack-deploy",
+    templatePath: "deployment_infra.yaml",
   },
+  // This stack uses the deployment bucket to package its local artifacts
   {
     region,
-    stackName: "my-stack",
-    templatePath: "app_infra.yaml",
-    deployBucket: (results) => {
-      const { bucketName } = results[results.length - 1]
-      return bucketName
-    },
+    stackName: "stack-A",
+    templatePath: "stackA.yaml",
+    dependsOn: [{ region, name: "stack-deploy" }],
+    deployBucket: ({ "stack-deploy": { bucketName } = {} }) => bucketName,
+    syncPath: [".env", "stackA.json"],
+  },
+  // This stack uses the deployment bucket and the outputs of stack A
+  {
+    region,
+    stackName: "stack-B",
+    templatePath: "stackB.yaml",
+    dependsOn: [{ region, name: "stack-A" }],
+    stackParameters: ({ "stack-A": { output1, output2 } = {} }) => ({
+      output1,
+      output2,
+    }),
+    syncPath: ".env", // Will merge with stack-A outputs
   },
 ]
 ```
@@ -437,7 +460,7 @@ Pacploy uses the official
 [AWS JS SDK](https://aws.amazon.com/sdk-for-javascript/) to execute AWS
 commands, so it is compatible with all the supported ways to setup credentials
 in Node.js: please refer to the
-[official doc](https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-credentials-node.html)
+[official doc](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html)
 for more info.
 
 ## License
