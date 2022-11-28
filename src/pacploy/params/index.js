@@ -1,131 +1,185 @@
 import getStackOutputs from "../sync/getStackOutputs.js"
 import getStatus from "../getStatus/index.js"
 
-/**
- * @typedef {Object} StackParams The parameters to execute stack operations
- * @property {String} region The region where to deploy
- * @property {String} stackName The name of the deployed stack
- * @property {String} templatePath Path to the source template
- * @property {{region: String, name: String}[]} [dependsOn] The dependent stacks
- * @property {String|((Object) => String)} [deployBucket] A S3 bucket name to
- * package resources
- * @property {String|((Object) => String)} [deployEcr] An ECR repo URI to
- * package docker images
- * @property {String|Object|((Object) => Object<String, String>)} [stackParameters]
- * The stack parameters
- * @property {String|Object|((Object) => Object<String, String>)} [stackTags]
- * The tags to apply to the stack
- * @property {Boolean} [forceDelete=false] If true, will not ask for
- * confirmation to delete the stack and associated resources if needed
- * @property {Boolean} [forceUpload=false] If true, will re-upload
- * resources even if they were not updated since last upload
- * @property {Boolean} [noPrune=false] If true, will not prune unused
- * packaged files associated with supplied stack from deployment bucket
- * @property {Boolean} [noRetained=false] If true, will not delete
- * retained resources assiciated with the supplied stack
- * @property {Boolean} [cleanup=false] If true, will delete retained
- * resources associated with the stack
- * @property {String|String[]} [syncPath] If provided, will sync the deployed
- * infra outputs locally
- * @property {Boolean} [noOverride=false] If provided, the sync command will not
- * override existing file
- * @property {Number} [index] The stack's index in a list to stacks (set
- * dynamically in some functions)
- * @property {String} [id] A stack id generated dynamically in some functions
- */
-
-/**
- * @typedef {Object} ResolvedStackParams The processed stack parameters after
- * resolving stack dependencies
- * @property {String} region The region where to deploy
- * @property {String} stackName The name of the deployed stack
- * @property {String} templatePath Path to the source template
- * @property {{region: String, name: String}[]} [dependsOn] The dependent stacks
- * @property {String} [deployBucket] A S3 bucket name to package resources
- * @property {String} [deployEcr] An ECR repo URI to package docker images
- * @property {Object} stackParameters The template parameters
- * @property {Object} stackTags The tags to apply to the stack
- * @property {Boolean} forceDelete If true, will not ask for
- * confirmation to delete the stack and associated resources if needed
- * @property {Boolean} forceUpload If true, will re-upload
- * resources even if they were not updated since last upload
- * @property {Boolean} noPrune If true, will not prune unused
- * packaged files associated with supplied stack from deployment bucket
- * @property {Boolean} noRetained If true, will not delete retained resources
- * associated with the supplied stack
- * @property {Boolean} cleanup If true, will delete retained resources 
- * associated with the stack
- * @property {String[]} syncPath If provided, will sync the deployed infra
- * locally
- * @property {Boolean} noOverride=false If provided, the command will not
- * override existing file
- * @property {Number} [index] The stack's index in a list to stacks (set
- * dynamically in some functions)
- * @property {String} id A stack id generated dynamically in some functions
-
-/**
- * Process stack parameters passed as a function by providing the dependent
- * stacks outputs
- * @param {StackParams} stack The stack parameters
- * @return {Promise<ResolvedStackParams>} The processed arguments
- */
-export default async function resolveParams({
-  region,
-  stackName,
-  templatePath,
-  dependsOn = [],
-  deployBucket,
-  deployEcr,
-  stackParameters = {},
-  stackTags = {},
-  forceDelete = false,
-  forceUpload = false,
-  noPrune = false,
-  cleanup = false,
-  noRetained = !cleanup,
-  syncPath = [],
-  noOverride = false,
-  index,
-  id = `${region}|${stackName}`,
-}) {
-  // Convert JSON strings into JSON objects if needed
-  if (typeof stackParameters === "string")
-    stackParameters = JSON.parse(stackParameters)
-  if (typeof stackTags === "string") stackTags = JSON.parse(stackTags)
-
-  // Resolve parameters with dependencies if needed
-  if (
-    typeof stackParameters === "function" ||
-    typeof deployBucket === "function" ||
-    typeof deployEcr === "function"
-  ) {
-    // If some parameters need to be resolved via a function
-    // Retrieve the outputs of stacks that depend on the current one
-    const outputs = Object.assign(
-      {},
-      ...(
-        await Promise.all(
-          dependsOn.map(async ({ region, name: stackName }) => {
-            if ((await getStatus({ region, stackName })) !== "NEW")
-              // Only get stack outputs if the stack exists
-              return {
-                [stackName]: await getStackOutputs({ region, stackName }),
-              }
-          })
-        )
-      ).filter(Boolean)
-    )
-    // Resolve the parameters with the dependent stack outputs
-    if (typeof stackParameters === "function")
-      stackParameters = stackParameters(outputs)
-    if (typeof deployBucket === "function") deployBucket = deployBucket(outputs)
-    if (typeof deployEcr === "function") deployEcr = deployEcr(outputs)
+export default class StackParams {
+  /**
+   * @param {Object} params The parameters
+   * @param {String} params.region The region where to deploy
+   * @param {String} params.stackName The name of the deployed stack
+   * @param {String} params.templatePath Path to the source template
+   * @param {{region: String, name: String}[]} [params.dependsOn] The dependent
+   * stacks
+   * @param {String|((Object) => String)} [params.deployBucket] A S3 bucket name
+   * to package resources
+   * @param {String|((Object) => String)} [params.deployEcr] An ECR repo URI to
+   * package docker images
+   * @param {String|Object|((Object) => Object<String, String>)} [params.stackParameters]
+   * The stack parameters
+   * @param {String|Object|((Object) => Object<String, String>)} [params.stackTags]
+   * The tags to apply to the stack
+   * @param {Boolean} [params.forceDelete=false] If true, will not ask for
+   * confirmation to delete the stack and associated resources if needed
+   * @param {Boolean} [params.forceUpload=false] If true, will re-upload
+   * resources even if they were not updated since last upload
+   * @param {Boolean} [params.noPrune=false] If true, will not prune unused
+   * packaged files associated with supplied stack from deployment bucket
+   * @param {Boolean} [params.noRetained=false] If true, will not delete
+   * retained resources assiciated with the supplied stack
+   * @param {Boolean} [params.cleanup=false] If true, will delete retained
+   * resources associated with the stack
+   * @param {String|String[]} [params.syncPath] If provided, will sync the
+   * deployed infra outputs locally
+   * @param {Boolean} [params.noOverride=false] If provided, the sync command
+   * will not override existing file
+   * @param {Number} [params.index] The stack's index in a list to stacks (set
+   * dynamically in some functions)
+   * @param {String} [params.id] A stack id generated dynamically in some
+   * functions
+   */
+  constructor({
+    region,
+    stackName,
+    templatePath,
+    dependsOn = [],
+    deployBucket,
+    deployEcr,
+    stackParameters = {},
+    stackTags = {},
+    forceDelete = false,
+    forceUpload = false,
+    noPrune = false,
+    cleanup = false,
+    noRetained = !cleanup,
+    syncPath = [],
+    noOverride = false,
+    index,
+    id = `${region}|${stackName}`,
+  }) {
+    this.region = region
+    this.stackName = stackName
+    this.templatePath = templatePath
+    this.dependsOn = dependsOn
+    this.deployBucket = deployBucket
+    this.deployEcr = deployEcr
+    this.stackParameters = stackParameters
+    this.stackTags = stackTags
+    this.forceDelete = forceDelete
+    this.forceUpload = forceUpload
+    this.noPrune = noPrune
+    this.noRetained = noRetained
+    this.cleanup = cleanup
+    this.syncPath = syncPath
+    this.noOverride = noOverride
+    this.index = index
+    this.id = id
   }
-  // Convert syncPath to a list
-  if (!Array.isArray(syncPath)) syncPath = [syncPath]
 
-  // Return processed arguments
-  return {
+  /**
+   * Process stack parameters passed as a function by providing the dependent
+   * stacks outputs
+   * @return {Promise<ResolvedStackParams>} The processed arguments
+   */
+  async resolve() {
+    // Resolve parameters with dependencies if needed
+    const outputs =
+      typeof this.stackParameters === "function" ||
+      typeof this.deployBucket === "function" ||
+      typeof this.deployEcr === "function"
+        ? // If some parameters need to be resolved via a function
+          // Retrieve the outputs of stacks that depend on the current one
+          Object.assign(
+            {},
+            ...(
+              await Promise.all(
+                this.dependsOn.map(async ({ region, name: stackName }) => {
+                  if ((await getStatus({ region, stackName })) !== "NEW")
+                    // Only get stack outputs if the stack exists
+                    return {
+                      [stackName]: await getStackOutputs({ region, stackName }),
+                    }
+                })
+              )
+            ).filter(Boolean)
+          )
+        : {}
+    // Return processed arguments
+    return new ResolvedStackParams({
+      region: this.region,
+      stackName: this.stackName,
+      templatePath: this.templatePath,
+      dependsOn: this.dependsOn,
+      // Resolve function with dependent outputs if needed
+      deployBucket:
+        typeof this.deployBucket === "function"
+          ? this.deployBucket(outputs)
+          : this.deployBucket,
+      // Resolve function with dependent outputs if needed
+      deployEcr:
+        typeof this.deployEcr === "function"
+          ? this.deployEcr(outputs)
+          : this.deployEcr,
+      // Convert JSON string into JSON object if needed
+      stackParameters:
+        typeof this.stackParameters === "function"
+          ? this.stackParameters(outputs)
+          : typeof this.stackParameters === "string"
+          ? JSON.parse(this.stackParameters)
+          : this.stackParameters,
+      // Convert JSON string into JSON object if needed
+      stackTags:
+        typeof this.stackTags === "string"
+          ? JSON.parse(this.stackTags)
+          : this.stackTags,
+      forceDelete: this.forceDelete,
+      forceUpload: this.forceUpload,
+      noPrune: this.noPrune,
+      noRetained: this.noRetained,
+      cleanup: this.cleanup,
+      // Convert syncPath to a list
+      syncPath: Array.isArray(this.syncPath) ? this.syncPath : [this.syncPath],
+      noOverride: this.noOverride,
+      index: this.index,
+      id: this.id,
+    })
+  }
+}
+
+/**
+ * The processed stack parameters after resolving stack dependencies
+ */
+export class ResolvedStackParams {
+  /**
+   * @param {Object} params The resolved parameters
+   * @param {String} params.region The region where to deploy
+   * @param {String} params.stackName The name of the deployed stack
+   * @param {String} params.templatePath Path to the source template
+   * @param {{region: String, name: String}[]} [params.dependsOn] The dependent
+   * stacks
+   * @param {String} [params.deployBucket] A S3 bucket name to package resources
+   * @param {String} [params.deployEcr] An ECR repo URI to package docker images
+   * @param {Object} params.stackParameters The template parameters
+   * @param {Object<String, String>} params.stackTags The tags to apply to the
+   * stack
+   * @param {Boolean} params.forceDelete If true, will not ask for
+   * confirmation to delete the stack and associated resources if needed
+   * @param {Boolean} params.forceUpload If true, will re-upload
+   * resources even if they were not updated since last upload
+   * @param {Boolean} params.noPrune If true, will not prune unused
+   * packaged files associated with supplied stack from deployment bucket
+   * @param {Boolean} params.noRetained If true, will not delete retained
+   * resources associated with the supplied stack
+   * @param {Boolean} params.cleanup If true, will delete retained resources
+   * associated with the stack
+   * @param {String[]} params.syncPath If provided, will sync the deployed infra
+   * locally
+   * @param {Boolean} params.noOverride If provided, the command will not
+   * override existing file
+   * @param {Number} [params.index] The stack's index in a list to stacks (set
+   * dynamically in some functions)
+   * @param {String} params.id A stack id generated dynamically in some
+   * functions
+   */
+  constructor({
     region,
     stackName,
     templatePath,
@@ -143,5 +197,28 @@ export default async function resolveParams({
     noOverride,
     index,
     id,
+  }) {
+    this.region = region
+    this.stackName = stackName
+    this.templatePath = templatePath
+    this.dependsOn = dependsOn
+    this.deployBucket = deployBucket
+    this.deployEcr = deployEcr
+    this.stackParameters = stackParameters
+    this.stackTags = stackTags
+    this.forceDelete = forceDelete
+    this.forceUpload = forceUpload
+    this.noPrune = noPrune
+    this.noRetained = noRetained
+    this.cleanup = cleanup
+    this.syncPath = syncPath
+    this.noOverride = noOverride
+    this.index = index
+    this.id = id
+  }
+
+  // Provided for compatibility with StackParams
+  async resolve() {
+    return this
   }
 }

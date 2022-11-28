@@ -3,7 +3,6 @@ import sync from "../sync/index.js"
 import pkg from "../pkg/index.js"
 import createChangeSet from "./createChangeSet.js"
 import waitForStatus from "../waitForStatus/index.js"
-import resolveParams from "../params/index.js"
 import {
   CloudFormationClient,
   ExecuteChangeSetCommand,
@@ -15,10 +14,11 @@ import {
 } from "../statuses.js"
 import errors from "../errors/index.js"
 import credentialDefaultProvider from "../credentialDefaultProvider.js"
+import { ResolvedStackParams } from "../params/index.js"
 
 /**
  * Deploy a single stack
- * @param {import('../params/index.js').StackParams} stack The parameters of
+ * @param {import('../params/index.js').default} stack The parameters of
  * the stack to deploy
  * @return {Promise<Boolean>} Whether the deployment was successful
  */
@@ -26,7 +26,7 @@ export default async function deployStack(stack) {
   let deployStarted = false // Will turn true once the deployment started
   try {
     // Resolve stack parameters
-    const resolved = await resolveParams(stack)
+    const resolved = await stack.resolve()
     const { region, stackName, syncPath } = resolved
 
     // Package and upload template to S3
@@ -34,7 +34,7 @@ export default async function deployStack(stack) {
 
     // Create root change set
     const { changeSetArn, hasChanges } = await createChangeSet(
-      { ...resolved, templatePath: templateURL },
+      new ResolvedStackParams({ ...resolved, templatePath: templateURL }),
       { quiet: true }
     )
     if (hasChanges) {

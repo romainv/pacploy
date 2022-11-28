@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import pacploy from "./pacploy/index.js"
+import pacploy, { StackParams } from "./pacploy/index.js"
 import { findUpSync } from "find-up" // Dependency of yargs
 import yargs from "yargs"
 import { resolve, dirname, join } from "path"
@@ -35,12 +35,15 @@ if (cliArgs.includes("--stack-name"))
 if (confs.length === 0) confs.push({})
 
 // Resolve the arguments to use for each user-defined configuration
-const args = await Promise.all(
+let args = await Promise.all(
   confs.map((curConf) => parseCommandArgs(commandDir, curConf, cliArgs))
 )
 // Some commands are not compatible with a list of stacks
 if (["zip", "errors"].includes(commandName) && args.length >= 1)
   throw new Error(`Command ${commandName} expects a single set of parameters`)
+// Parse arguments for commands which expect standardized parameters
+if (["cleanup", "delete", "deploy", "package", "zip"].includes(commandName))
+  args = args.map((params) => new StackParams(params))
 // Execute the requested command
 const res = await pacploy[commandName](args)
 // Print result if relevant

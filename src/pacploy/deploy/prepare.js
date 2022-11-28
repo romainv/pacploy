@@ -10,7 +10,7 @@ import waitForStatus from "../waitForStatus/index.js"
 
 /**
  * Prepares a stack for deployment: this will delete it if necessary
- * @param {import('../params/index.js').StackParams} stack Stack parameters
+ * @param {import('../params/index.js').default} stack Stack parameters
  * @return {Promise<String>} The prepared stack status
  */
 export default async function prepare(stack) {

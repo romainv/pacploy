@@ -7,7 +7,7 @@ import getStatus from "../getStatus/index.js"
 /**
  * Delete retained resources created by some stacks but not associated with
  * them anymore, and prune old files from deployment bucket
- * @param {import('../params/index.js').StackParams[]} stacks The list of stack
+ * @param {import('../params/index.js').default[]} stacks The list of stack
  * parameters to prune
  */
 export default async function pruneRetainedResources(stacks) {

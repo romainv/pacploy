@@ -18,8 +18,8 @@ import credentialDefaultProvider from "../credentialDefaultProvider.js"
  * template was packaged. This is only used for the root template, all other
  * resources will include the reference to the bucket to which they were
  * packaged
- * @return {Promise<{Bucket: String, Key: String}[]>} The {Bucket, Key} of
- * packaged files
+ * @return {Promise<{region: String, bucket: String, key: String}[]>} The list
+ * of packaged files
  */
 export default async function listPackagedFiles({
   region,
@@ -54,8 +54,9 @@ export default async function listPackagedFiles({
       })
     )
     packaged.push({
-      Bucket: deployBucket,
-      Key: `${await md5(originalContent)}.yaml`,
+      region,
+      bucket: deployBucket,
+      key: `${await md5(originalContent)}.yaml`,
     })
   }
   // Recursively retrieve the template's packaged resources
@@ -70,16 +71,16 @@ export default async function listPackagedFiles({
       )
       if (resourceProp.packaged.S3) {
         // If current resource has files packaged to S3
-        for (const { Bucket, Key } of resourceProp.packaged.S3) {
+        for (const { Bucket: bucket, Key: key } of resourceProp.packaged.S3) {
           if (
             !packaged.reduce(
               (res, { Bucket: curBucket, Key: curKey }) =>
-                res || (Bucket === curBucket && Key === curKey),
+                res || (bucket === curBucket && key === curKey),
               false
             )
           )
             // If current resource was not identified yet, add it to the list
-            packaged.push({ Bucket, Key })
+            packaged.push({ region, bucket, key })
         }
       }
     },

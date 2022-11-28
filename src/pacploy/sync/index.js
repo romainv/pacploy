@@ -9,7 +9,7 @@ import dotenv from "dotenv"
 
 /**
  * Download outputs of a deployed stack(s) into a local file(s)
- * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * @param {import('../params/index.js').default|import('../params/index.js').default[]} stacks
  * The list of stack parameters whose outputs to sync
  * @param {Object} [params] Additional parameters
  * @param {Boolean} [params.quiet] Whether to turn off tracker status update
@@ -23,7 +23,7 @@ export default async function sync(stacks, params) {
 
 /**
  * Download outputs of a deployed stack into local file(s)
- * @param {import('../params/index.js').StackParams} stack The stack parameters
+ * @param {import('../params/index.js').default} stack The stack parameters
  * @param {Object} [params] Additional parameters
  * @param {Boolean} [params.quiet] Whether to turn off tracker status update
  */

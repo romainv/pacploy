@@ -34,30 +34,29 @@ export default async function parseRemoteTemplate({
             // Loop through each property of the current resource
             if (
               resourceType === "AWS::CloudFormation::Stack" &&
-              propName === "TemplateURL" &&
-              typeof propValue === "string" &&
-              propValue.startsWith("http")
+              propName === "TemplateURL"
             ) {
-              // Retrieve the template body
-              const resourceProp = new ResourceProperty(
+              // If the current resource is a nested template
+              const { packaged } = new ResourceProperty(
                 resourceType,
                 propName,
                 propValue
               )
-              const { Body } = await call(
-                s3,
-                s3.send,
-                new GetObjectCommand({
-                  Bucket: resourceProp.Bucket,
-                  Key: resourceProp.Key,
+              if (packaged.S3) {
+                // If the nested template is packaged to S3
+                const [{ Bucket, Key }] = packaged.S3
+                const { Body } = await call(
+                  s3,
+                  s3.send,
+                  new GetObjectCommand({ Bucket, Key })
+                )
+                // Recursively parse it
+                await parseRemoteTemplate({
+                  region,
+                  templateBody: Body.toString("utf-8"),
+                  fn,
                 })
-              )
-              // Recursively parse it
-              await parseRemoteTemplate({
-                region,
-                templateBody: Body.toString("utf-8"),
-                fn,
-              })
+              }
             }
             // Execute the function on the current property
             await fn({

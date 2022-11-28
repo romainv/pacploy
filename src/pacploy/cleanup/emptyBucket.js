@@ -12,7 +12,7 @@ import credentialDefaultProvider from "../credentialDefaultProvider.js"
 export default async function emptyBucket({
   region,
   bucket,
-  tagsFilter,
+  tagsFilters,
   exclude = [],
 }) {
   const s3 = new S3Client({
@@ -34,7 +34,7 @@ export default async function emptyBucket({
         // Set the maximum number of objects to return on each page to the max
         // that can be deleted in a single API call
         pageSize: 1000,
-        tagsFilter,
+        tagsFilters,
         exclude,
       },
       nextVersionIdMarker,
@@ -47,10 +47,15 @@ export default async function emptyBucket({
         s3.send,
         new DeleteObjectsCommand({
           Bucket: bucket,
-          Delete: { Objects: objects },
+          Delete: {
+            Objects: objects.map(({ key, versionId }) => ({
+              Key: key,
+              VersionId: versionId,
+            })),
+          },
         })
       )
-      deleted = deleted.concat(objects.map(({ Key }) => Key))
+      deleted = deleted.concat(objects.map(({ key }) => key))
     }
   } while (nextVersionIdMarker || nextKeyMarker)
   return deleted
