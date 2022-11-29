@@ -8,6 +8,9 @@ import getStatus from "./getStatus/index.js"
 import pkg from "./pkg/index.js"
 import sync from "./sync/index.js"
 import zip from "./zip/index.js"
+import StackParams from "./params/index.js"
+
+export { StackParams }
 
 // Set a safe request limit to AWS API
 setRate(2, 1000)

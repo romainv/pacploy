@@ -14,6 +14,8 @@ import {
 } from "@aws-sdk/client-s3"
 import { Upload } from "@aws-sdk/lib-storage"
 import credentialDefaultProvider from "../credentialDefaultProvider.js"
+// The character used to delimitate multiple values in a tag
+import { getTags, tagDelimiter } from "../cleanup/listBucket.js"
 
 /**
  * Package a local file to S3 if necessary
@@ -118,27 +120,18 @@ async function updateTags(stackTags, region, bucket, key) {
   })
 
   // Retrieve existing tags if any, and deserialize them
-  const existingTags = (
-    await call(
-      s3,
-      s3.send,
-      new GetObjectTaggingCommand({ Bucket: bucket, Key: key })
-    )
-  ).TagSet.reduce((tags, { Key, Value }) => {
-    tags[Key] = Value
-    return tags
-  }, {})
+  const existingTags = await getTags(region, bucket, key)
 
-  // Merge values (separated by :) in case multiple stacks use the same file
+  // Merge values in case multiple stacks use the same file
   const allKeys = Array.from(
     new Set(Object.keys(existingTags).concat(Object.keys(stackTags)))
   )
   const tagsToApply = allKeys.reduce((merged, key) => {
-    const existing = existingTags[key] || ""
-    const updated = stackTags[key] || ""
-    merged[key] = Array.from(
-      new Set(existing.split(":").concat(updated.split(":")))
-    ).join(":")
+    const existing = existingTags[key] || []
+    const updated = stackTags[key] ? [stackTags[key]] : []
+    merged[key] = Array.from(new Set(existing.concat(updated))).join(
+      tagDelimiter
+    )
     return merged
   }, {})
 

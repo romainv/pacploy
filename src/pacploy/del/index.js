@@ -2,11 +2,10 @@ import tracker from "../tracker.js"
 import deleteStacks from "./deleteStacks.js"
 import cleanup from "../cleanup/index.js"
 import getStatus from "../getStatus/index.js"
-import resolveParams from "../params/index.js"
 
 /**
  * Delete stacks while respecting their dependencies
- * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * @param {import('../params/index.js').default|import('../params/index.js').default[]} stacks
  * The list of stack parameters to delete
  */
 export default async function del(stacks) {
@@ -24,7 +23,9 @@ export default async function del(stacks) {
 
   // Resolve stack parameters
   tracker.setStatus("resolving stacks parameters")
-  const resolvedStacks = await Promise.all(stacks.map(resolveParams))
+  const resolvedStacks = await Promise.all(
+    stacks.map((stack) => stack.resolve())
+  )
 
   // Check stack status
   tracker.setStatus("checking stacks status")

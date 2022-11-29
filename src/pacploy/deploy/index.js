@@ -6,7 +6,7 @@ import deployStacks from "./deployStacks.js"
 
 /**
  * Deploy a list of stacks
- * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * @param {import('../params/index.js').default|import('../params/index.js').default[]} stacks
  * The list of stack parameters to deploy
  */
 export default async function deploy(stacks) {

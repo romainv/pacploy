@@ -1,17 +1,16 @@
 import packageFile from "./packageFile.js"
-import resolveParams from "../params/index.js"
 
 /**
  * Package local files of a single template to S3 or ECR
  * @param {Object<String, import('./File.js').default>} toPackage The files to
  * package
- * @param {import('../params/index.js').StackParams} stack The params
+ * @param {import('../params/index.js').default} stack The params
  * @return {Promise<Object<String, import('./File.js').default>>} The updated
  * set of files with packaged location for each of the supplied template
  */
 export default async function packageFiles(toPackage, stack) {
   // Resolve deployment resources if needed
-  const resolved = await resolveParams(stack)
+  const resolved = await stack.resolve()
 
   // Make sure an S3 bucket or an ECR repo are provided if needed
   for (const file of Object.values(toPackage))

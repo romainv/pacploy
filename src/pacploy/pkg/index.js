@@ -1,12 +1,13 @@
 import tracker from "../tracker.js"
 import getFilesToPackage from "./getFilesToPackage.js"
 import packageFiles from "./packageFiles.js"
+import StackParams from "../params/index.js"
 
 /**
  * Package a template and its local resources to S3 for deployment
  * This aims to be equivalent to the 'aws cloudformation package' command of
  * AWS CLI, which doesn't exist in AWS JS SDK
- * @param {import('../params/index.js').StackParams|import('../params/index.js').StackParams[]} stacks
+ * @param {import('../params/index.js').default|import('../params/index.js').default[]} stacks
  * The list of stack parameters to package
  * @param {Object} [params] Additional parameters to configure the function
  * @param {Boolean} [params.quiet] If true, will disable outputs
@@ -35,7 +36,7 @@ export default async function pkg(stacks, { quiet = false } = {}) {
   if (!quiet) tracker.setStatus(`packaging ${filesCount} files`)
   const packagedTemplates = await Promise.all(
     stacksToPackage.map(({ toPackage, ...stack }) =>
-      packageFiles(toPackage, stack)
+      packageFiles(toPackage, new StackParams(stack))
     )
   )
 

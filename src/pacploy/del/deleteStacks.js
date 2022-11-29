@@ -9,7 +9,7 @@ import tracker from "../tracker.js"
 
 /**
  * Recursively delete stacks while respecting their dependencies
- * @param {Object<String, import('../params/index.js').StackParams & StackToDelete>} stacks
+ * @param {Object<String, import('../params/index.js').default & StackToDelete>} stacks
  * The stacks to delete
  */
 export default async function deleteStacks(stacks) {
@@ -43,7 +43,7 @@ export default async function deleteStacks(stacks) {
 
 /**
  * Update the tracker status to display the progress
- * @param {Object<String, import('../params/index.js').StackParams & StackToDelete>} stacks
+ * @param {Object<String, import('../params/index.js').default & StackToDelete>} stacks
  * The stacks
  */
 function updateTracker(stacks) {
@@ -63,9 +63,9 @@ function updateTracker(stacks) {
 
 /**
  * Select the stacks which are ready to be deleted
- * @param {Object<string, import('../params/index.js').StackParams & StackToDelete>} stacks
+ * @param {Object<string, import('../params/index.js').default & StackToDelete>} stacks
  * The list of stack parameters
- * @return {Object<string, import('../params/index.js').StackParams & StackToDelete>}
+ * @return {Object<string, import('../params/index.js').default & StackToDelete>}
  * The subset of those ready to be deleted
  */
 function getStacksReadyToDelete(stacks) {
@@ -92,9 +92,9 @@ function getStacksReadyToDelete(stacks) {
  * @param {Object} stack The stack to lookup
  * @param {String} stack.region The stack's region
  * @param {String} stack.stackName The stack's name
- * @param {Object<string, import('../params/index.js').StackParams & StackToDelete>} stacks
+ * @param {Object<string, import('../params/index.js').default & StackToDelete>} stacks
  * The stack parameters to filter
- * @return {(import('../params/index.js').StackParams & StackToDelete)[]} The
+ * @return {(import('../params/index.js').default & StackToDelete)[]} The
  * subset of stacks that depend on the supplied one
  */
 function getDependents({ region, stackName }, stacks) {

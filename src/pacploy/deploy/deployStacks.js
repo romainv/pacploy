@@ -9,7 +9,7 @@ import tracker from "../tracker.js"
 
 /**
  * Recursively deploy stacks while respecting their dependencies
- * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * @param {(import('../params/index.js').default & StackToDeploy)[]} stacks
  * The stacks to deploy
  */
 export default async function deployStacks(stacks) {
@@ -55,7 +55,7 @@ export default async function deployStacks(stacks) {
 
 /**
  * Update the tracker status to display the progress
- * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * @param {(import('../params/index.js').default & StackToDeploy)[]} stacks
  * The updated stacks info
  */
 function updateTracker(stacks) {
@@ -75,9 +75,9 @@ function updateTracker(stacks) {
 
 /**
  * Select the stacks which are ready to be deployed
- * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * @param {(import('../params/index.js').default & StackToDeploy)[]} stacks
  * The list of stack params
- * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * @return {(import('../params/index.js').default & StackToDeploy)[]} The
  * subset ready to be deployed
  */
 function getStacksReadyToDeploy(stacks) {
@@ -99,9 +99,9 @@ function getStacksReadyToDeploy(stacks) {
  * Retrieve the stack parameters of the stacks on which the supplied one
  * depends
  * @param {Object} stack The parameters of the stack to lookup
- * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * @param {(import('../params/index.js').default & StackToDeploy)[]} stacks
  * The list of stacks in which to lookup
- * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * @return {(import('../params/index.js').default & StackToDeploy)[]} The
  * subset of stacks on which the supplied one depends
  */
 function getDependencies({ dependsOn = [] }, stacks) {
@@ -122,9 +122,9 @@ function getDependencies({ dependsOn = [] }, stacks) {
  * @param {Object} stack The stack to lookup
  * @param {String} stack.region The stack's region
  * @param {String} stack.stackName The stack's name
- * @param {(import('../params/index.js').StackParams & StackToDeploy)[]} stacks
+ * @param {(import('../params/index.js').default & StackToDeploy)[]} stacks
  * The stack parameters to filter
- * @return {(import('../params/index.js').StackParams & StackToDeploy)[]} The
+ * @return {(import('../params/index.js').default & StackToDeploy)[]} The
  * subset of stacks that depend on the supplied one
  */
 function getDependents({ region, stackName }, stacks) {
