@@ -42,7 +42,7 @@ let args = await Promise.all(
 if (["zip", "errors"].includes(commandName) && args.length >= 1)
   throw new Error(`Command ${commandName} expects a single set of parameters`)
 // Parse arguments for commands which expect standardized parameters
-if (["cleanup", "delete", "deploy", "package", "zip"].includes(commandName))
+if (["cleanup", "del", "deploy", "pkg", "zip"].includes(commandName))
   args = args.map((params) => new StackParams(params))
 // Execute the requested command
 const res = await pacploy[commandName](args)
