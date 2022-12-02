@@ -17,7 +17,6 @@ const command = {
         type: "string",
         describe: "Path to where stack info should be saved",
         alias: "to",
-        demandOption: true,
       })
       .option("no-override", {
         type: "boolean",
