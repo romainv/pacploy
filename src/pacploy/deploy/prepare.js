@@ -35,7 +35,7 @@ export default async function prepare(stack) {
         ].join(" ")
       )
     // Delete stack
-    await del(stack)
+    await del(stack, { warnAboutForceDelete: false })
     // Update status
     status = await getStatus({ region, stackName })
   }
