@@ -99,8 +99,14 @@ export default async function prunePackagedFiles(stacks) {
   Object.values(prunableStacks).forEach((buckets) =>
     Object.values(buckets).forEach((stacks) =>
       Object.keys(stacks).forEach((id) => {
-        if (_stacks[id].forceDelete) stackIdsToPrune.push(id)
-        else stackIdsToConfirm.push(id)
+        // If the current stack is not in the list of stacks we are handling,
+        // leave it as unconfirmed so that the file won't be deleted (we do it
+        // by not marking it as auto-delete nor including it in the list of
+        // stacks to manually confirm)
+        if (id in Object.keys(_stacks)) {
+          if (_stacks[id].forceDelete) stackIdsToPrune.push(id)
+          else stackIdsToConfirm.push(id)
+        }
       })
     )
   )

@@ -6,13 +6,20 @@ import getStatus from "../getStatus/index.js"
 /**
  * Delete stacks while respecting their dependencies
  * @param {import('../params/index.js').default|import('../params/index.js').default[]} stacks
+ * @param {Object} [params] Additional parameters
+ * @param {Boolean} [params.warnAboutForceDelete=true] Enable to deactivate the
+ * warning about the forceDelete flag when it was already displayed
  * The list of stack parameters to delete
  */
-export default async function del(stacks) {
+export default async function del(
+  stacks,
+  { warnAboutForceDelete = true } = {}
+) {
   if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
 
   // Check if at least one forceDelete parameter is set
   if (
+    warnAboutForceDelete &&
     stacks.reduce(
       (hasForceDelete, { forceDelete }) => hasForceDelete || forceDelete,
       false

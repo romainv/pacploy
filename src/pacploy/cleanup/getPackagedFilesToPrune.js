@@ -79,8 +79,10 @@ async function getFilesToPruneInBucket(region, bucket, stacks, exclude) {
 
   // Map the files to the stack(s) they pertain to
   return filesToPruneInBucket.reduce((perStack, { tags, ...object }) => {
-    // Retrieve the list of stacks to which the file belongs
-    const stackNames = typeof tags === "object" ? tags.RootStackName || [] : []
+    // Retrieve the list of stacks to which the file belongs (exclude empty
+    // values that may have ended up in the file's tags)
+    const stackNames =
+      typeof tags === "object" ? tags.RootStackName.filter(Boolean) || [] : []
     for (const stackName of stackNames) {
       // Generate the stack's id in the expected format
       const id = `${region}|${stackName}`
