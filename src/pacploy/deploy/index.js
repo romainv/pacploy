@@ -54,5 +54,5 @@ export default async function deploy(stacks) {
   await deployStacks(stacks)
 
   // Cleanup retained resources
-  await cleanup(stacks)
+  await cleanup(stacks, { warnAboutForceDelete: false })
 }

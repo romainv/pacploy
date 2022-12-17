@@ -72,8 +72,10 @@ export default async function prunePackagedFiles(stacks) {
         ),
       0
     ) === 0
-  )
+  ) {
+    tracker.interruptInfo("No stacks to prune")
     return
+  }
 
   // Retrieve the list of packaged files still in use by any of the stacks.
   // These files will be excluded from pruning for all stacks. We build an
@@ -103,7 +105,7 @@ export default async function prunePackagedFiles(stacks) {
         // leave it as unconfirmed so that the file won't be deleted (we do it
         // by not marking it as auto-delete nor including it in the list of
         // stacks to manually confirm)
-        if (id in Object.keys(_stacks)) {
+        if (Object.keys(_stacks).includes(id)) {
           if (_stacks[id].forceDelete) stackIdsToPrune.push(id)
           else stackIdsToConfirm.push(id)
         }
@@ -133,8 +135,9 @@ export default async function prunePackagedFiles(stacks) {
 
   // Prune the selected stacks
   if (stackIdsToPrune.length > 0) {
+    const s = stackIdsToPrune.length > 1 ? "s" : ""
     tracker.setStatus(
-      `pruning old deployment files of ${stackIdsToPrune.length} stacks`
+      `pruning old deployment files of ${stackIdsToPrune.length} stack${s}`
     )
     const prunedKeysCount = await pruneFiles(prunableStacks, stackIdsToPrune)
     // Display the number of pruned files
