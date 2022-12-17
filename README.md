@@ -104,7 +104,7 @@ Options:
                                 associated with supplied stack from deployment
                                 bucket [boolean] [default: false]
   --cleanup                     If set, will delete retained resources
-                                assiciated with the supplied stack [boolean]
+                                associated with the supplied stack [boolean]
                                 [default: false]
 ```
 
@@ -157,6 +157,11 @@ Options:
   --region        The region in which the stack is deployed [string] [required]
   --force-delete  If set, will not ask for confirmation before deleting the
                   stack and associated resources [boolean] [default: false]
+  --no-prune      If set, will not prune unused packaged files associated with
+                  supplied stack from deployment bucket [boolean]
+                  [default: false]
+  --cleanup       If set, will not delete retained resources associated with
+                  the supplied stack [boolean] [default: false]
 ```
 
 Delete a stack, and optionally retained resources (see the
@@ -214,8 +219,8 @@ Options:
   --no-prune                    If set, will not prune unused packaged files
                                 associated with supplied stack from deployment
                                 bucket [boolean] [default: false]
-  --cleanup                     If set, will delete retained resources
-                                assiciated with the supplied stack [boolean]
+  --no-retained                 If set, will not delete retained resources
+                                associated with the supplied stack [boolean]
                                 [default: false]
 ```
 

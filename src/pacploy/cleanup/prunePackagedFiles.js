@@ -72,10 +72,8 @@ export default async function prunePackagedFiles(stacks) {
         ),
       0
     ) === 0
-  ) {
-    tracker.interruptInfo("No stacks to prune")
+  )
     return
-  }
 
   // Retrieve the list of packaged files still in use by any of the stacks.
   // These files will be excluded from pruning for all stacks. We build an

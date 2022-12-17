@@ -18,6 +18,16 @@ const command = {
         describe: "If set, will not ask for confirmation delete",
         default: Boolean(process.argv.indexOf("--force-delete") > -1),
       })
+      .option("no-prune", {
+        type: "boolean",
+        describe: "If set, will not prune unused packaged files",
+        default: Boolean(process.argv.indexOf("--no-prune") > -1),
+      })
+      .option("cleanup", {
+        type: "boolean",
+        describe: "If set, will not delete retained resources",
+        default: Boolean(process.argv.indexOf("--cleanup") > -1),
+      })
   },
 }
 
