@@ -414,6 +414,18 @@ const packingList = {
         }),
       }),
   },
+  "AWS::StepFunctions::StateMachine.DefinitionS3Location": {
+    toPackage: (propValue) =>
+      typeof propValue === "string" ? { S3: [propValue] } : {},
+    packaged: (propValue) =>
+      propValue.Bucket && propValue.Key
+        ? { S3: [{ Bucket: propValue.Bucket, Key: propValue.Key }] }
+        : {},
+    update: (propValue, { [propValue]: location }) => ({
+      Bucket: parseS3Uri(location).Bucket,
+      Key: parseS3Uri(location).Key,
+    }),
+  }
 }
 
 /**
