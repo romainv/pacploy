@@ -91,10 +91,11 @@ async function syncStack(
  * @return {Promise<Boolean>} The MD5 hash of the target file after updating it
  */
 async function syncOutputs(newOutputs, path) {
+  // Detect if the file is a dotenv file, which could be named .env or .env.ext
+  // or .ext.env
+  const isDotenv = basename(path).startsWith(".env") || extname(path) === ".env"
   // Retrieve extension (.env doesn't have an extension)
-  const extension = (
-    basename(path) === ".env" ? basename(path) : extname(path)
-  ).toLowerCase()
+  const extension = (isDotenv ? ".env" : extname(path)).toLowerCase()
   // Check if file format is supported
   if (!Object.keys(formats).includes(extension))
     throw new Error(`unsupported file format (${extension})`)
