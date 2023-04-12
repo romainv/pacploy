@@ -1,4 +1,4 @@
-import glob from "glob"
+import { glob } from "glob"
 import { join, resolve } from "path"
 import { stat } from "fs"
 
