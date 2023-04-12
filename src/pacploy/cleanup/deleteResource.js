@@ -88,7 +88,6 @@ async function deleteS3Bucket(region, bucket) {
     new DeleteBucketCommand({
       Bucket: bucket,
       credentialDefaultProvider,
-      credentialDefaultProvider,
     })
   )
 }

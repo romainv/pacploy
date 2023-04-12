@@ -425,7 +425,7 @@ const packingList = {
       Bucket: parseS3Uri(location).Bucket,
       Key: parseS3Uri(location).Key,
     }),
-  }
+  },
 }
 
 /**

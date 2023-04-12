@@ -8,7 +8,6 @@ import md5 from "./md5.js"
 import tmp from "tmp"
 import {
   S3Client,
-  GetObjectTaggingCommand,
   PutObjectTaggingCommand,
   HeadObjectCommand,
 } from "@aws-sdk/client-s3"

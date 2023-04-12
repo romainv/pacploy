@@ -1,4 +1,4 @@
-import glob from "glob"
+import { glob } from "glob"
 import { join, resolve } from "path"
 import { stat } from "fs"
 
@@ -24,18 +24,13 @@ export default async function getFilesMatching(
   const files = new Set() // Will contain the matching files
   for (let pattern of patterns) {
     // Retrieve paths matching the supplied pattern and not ignored
-    const paths = await new Promise((res, rej) =>
-      glob(
-        pattern,
-        {
-          cwd,
-          follow: true, // Follow symlinks
-          ...options,
-        },
-        (err, paths) =>
-          err ? rej(err) : res(paths.filter((path) => !ignore.has(path)))
-      )
-    )
+    const paths = (
+      await glob(pattern, {
+        cwd,
+        follow: true, // Follow symlinks
+        ...options,
+      })
+    ).filter((path) => !ignore.has(path))
     for (let path of paths) {
       if (await isDir(resolve(cwd, path))) {
         // If current match is a directory, expand it and get the nested files
