@@ -12,10 +12,6 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-    branches-ignore:
-      # Ignore the production branch as it triggers the deployment workflow
-      # which will run the checks
-      - production
   workflow_call: # Enable to reuse this workflow in other workflows
 
 # Handle duplicated checks in the same branch
