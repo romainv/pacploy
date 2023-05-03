@@ -1,0 +1,33 @@
+name: Production PR
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  repository-projects: write # Required by the PR automation workflow
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Create production PR
+        run: >-
+          echo -e "**Warning:** Merge with the \`Create a merge commit\` button
+          and not the \`Squash and merge\` one.\n\n\nThis PR is automatically
+          created when a commit is pushed to the main branch. It will deploy
+          the main branch to production.\n\n\nProceed with caution!" |
+          gh pr create
+          --title "Publish"
+          --base production
+          --head develop
+          --assignee romainv
+          --body-file - 
+          || true
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,14 +1,37 @@
-# Run several checks on the codebase
-name: Check
+# Run linting and static tests on the codebase
+name: Checks
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
+    # By default, a workflow only runs when a pull_request's activity type is
+    # opened , synchronize , or reopened. To trigger workflows for more activity
+    # types (e.g. when a PR is turned from Draft to Ready for Review), we
+    # specify more types
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    branches-ignore:
+      # Ignore the production branch as it triggers the deployment workflow
+      # which will run the checks
+      - production
+  workflow_call: # Enable to reuse this workflow in other workflows
+
+# Handle duplicated checks in the same branch
+concurrency:
+  group: check-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  # Cancel any in-progress checks if a new one is queued in the same PR
+  # For other events, we don't cancel in-progress checks
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: 18
 
 jobs:
-  check:
+  js_lint:
+    # Only run if PR is not a draft or not triggered by a PR
+    if: github.event_name != 'pull_request' || ! github.event.pull_request.draft
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -16,8 +39,24 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: ${{ env.NODE_VERSION }}
       - name: Install dependencies
         run: npm ci
-      - name: Run checks
-        run: npx eslint .
+      - name: Lint Javascript
+        run: npm run lint
+
+  js_test:
+    # Only run if PR is not a draft or not triggered by a PR
+    if: github.event_name != 'pull_request' || ! github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install dependencies
+        run: npm ci
+      - name: Test Javascript
+        run: npm run test
