@@ -1,0 +1,16 @@
+// See more details at https://aka.ms/devcontainer.json
+{
+  "name": "Pacploy",
+
+  // Tool-specific configuration
+  "customizations": {
+    "vscode": {
+      // Define which extensions should be installed when the container is created
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "christian-kohler.npm-intellisense",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}
