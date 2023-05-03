@@ -8,6 +8,9 @@ on:
 env:
   NODE_VERSION: 18
 
+permissions:
+  contents: write    
+
 jobs:
   check:
     uses: ./.github/workflows/check.yaml # Reuse the checks workflow
@@ -16,8 +19,6 @@ jobs:
     needs: check # Only publish if the checks are successful
     runs-on: ubuntu-latest
     concurrency: npm-publish # Only allow one job to run at a time
-    permissions:
-      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
