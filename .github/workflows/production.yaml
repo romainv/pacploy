@@ -20,7 +20,8 @@ jobs:
           echo -e "**Warning:** Merge with the \`Create a merge commit\` button
           and not the \`Squash and merge\` one.\n\n\nThis PR is automatically
           created when a commit is pushed to the main branch. It will deploy
-          the main branch to production.\n\n\nProceed with caution!" |
+          the main branch to production.\n\n\nProceed with caution!\n\n\nRemember
+          to bump the version number." |
           gh pr create
           --title "Publish"
           --base production
