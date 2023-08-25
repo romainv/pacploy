@@ -192,7 +192,7 @@ const packingList = {
             res.S3.push(propValue[arg]) // Add the file
           return res
         },
-        { S3: [] }
+        { S3: [] },
       ),
     packaged: (propValue) =>
       awsGlueJobDefaultArgumentsToPackage.reduce(
@@ -201,7 +201,7 @@ const packingList = {
             res.S3.push(parseS3Uri(propValue[arg])) // Add the file
           return res
         },
-        { S3: [] }
+        { S3: [] },
       ),
     update: (propValue, locations) =>
       Object.assign(
@@ -210,12 +210,12 @@ const packingList = {
           // Keep only the arguments that were not already packaged
           .filter(
             (arg) =>
-              propValue[arg] !== undefined && !isValidS3Uri(propValue[arg])
+              propValue[arg] !== undefined && !isValidS3Uri(propValue[arg]),
           )
           .map((arg) => ({
             // Replace the argument's value with the packaged location
             [arg]: getS3Uri(parseS3Uri(locations[propValue[arg]])),
-          }))
+          })),
       ),
   },
   "AWS::Include.Location": {
@@ -269,7 +269,7 @@ const packingList = {
           if (!isValidECRUri(Image)) res.ECR.push(Image)
           return res
         },
-        { ECR: [] }
+        { ECR: [] },
       ),
     packaged: (propValue) =>
       propValue.reduce(
@@ -278,14 +278,14 @@ const packingList = {
           if (isValidECRUri(Image)) res.ECR.push(Image)
           return res
         },
-        { ECR: [] }
+        { ECR: [] },
       ),
     update: (propValue, locations) =>
       propValue.map((def) =>
         Object.assign(
           def,
-          !isValidECRUri(def.Image) && { Image: locations[def.Image] }
-        )
+          !isValidECRUri(def.Image) && { Image: locations[def.Image] },
+        ),
       ),
   },
   "AWS::CodeBuild::Project.Environment": {
@@ -329,7 +329,7 @@ const packingList = {
           typeof propValue.ApplicationCodeConfiguration.CodeContent
             .TextContent === "string" &&
           propValue.ApplicationCodeConfiguration.CodeContent.TextContent.startsWith(
-            "."
+            ".",
           )
         ? {
             INLINE: [
@@ -349,7 +349,7 @@ const packingList = {
                 // S3 bucket name is after the ':::'
                 Bucket: /.*:::(?<name>.+)$/.exec(
                   propValue.ApplicationCodeConfiguration.CodeContent
-                    .S3ContentLocation.BucketARN
+                    .S3ContentLocation.BucketARN,
                 ).groups.name,
                 Key: propValue.ApplicationCodeConfiguration.CodeContent
                   .S3ContentLocation.FileKey,
@@ -364,7 +364,7 @@ const packingList = {
           s3Location,
         [propValue.ApplicationCodeConfiguration.CodeContent.TextContent]:
           tmpLocation,
-      }
+      },
     ) =>
       Object.assign(propValue, {
         ApplicationCodeConfiguration: Object.assign(
@@ -385,9 +385,9 @@ const packingList = {
                 : tmpLocation
                 ? // Replace local path with file content
                   { TextContent: readFileSync(tmpLocation, "utf8") }
-                : {}
+                : {},
             ),
-          }
+          },
         ),
       }),
   },
@@ -406,7 +406,7 @@ const packingList = {
         : {},
     update: (
       propValue,
-      { [propValue.ImageRepository.ImageIdentifier]: location }
+      { [propValue.ImageRepository.ImageIdentifier]: location },
     ) =>
       Object.assign(propValue, {
         ImageRepository: Object.assign(propValue.ImageRepository, {
@@ -447,7 +447,7 @@ function isValidS3Uri(uri) {
 function isValidECRUri(uri) {
   // Source: https://stackoverflow.com/questions/39671641
   return new RegExp(
-    "^(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])(:[0-9]+\\/)?(?:[0-9a-z-]+[/@])(?:([0-9a-z-]+))[/@]?(?:([0-9a-z-]+))?(?::[a-z0-9\\.-]+)?$"
+    "^(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])(:[0-9]+\\/)?(?:[0-9a-z-]+[/@])(?:([0-9a-z-]+))[/@]?(?:([0-9a-z-]+))?(?::[a-z0-9\\.-]+)?$",
   ).test(uri)
 }
 

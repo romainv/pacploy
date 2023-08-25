@@ -40,7 +40,7 @@ export default async function parseRemoteTemplate({
               const { packaged } = new ResourceProperty(
                 resourceType,
                 propName,
-                propValue
+                propValue,
               )
               if (packaged.S3) {
                 // If the nested template is packaged to S3
@@ -48,7 +48,7 @@ export default async function parseRemoteTemplate({
                 const { Body } = await call(
                   s3,
                   s3.send,
-                  new GetObjectCommand({ Bucket, Key })
+                  new GetObjectCommand({ Bucket, Key }),
                 )
                 // Recursively parse it
                 await parseRemoteTemplate({
@@ -64,8 +64,8 @@ export default async function parseRemoteTemplate({
               propName,
               propValue,
             })
-          })
-        )
-    )
+          }),
+        ),
+    ),
   )
 }

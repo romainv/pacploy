@@ -18,7 +18,7 @@ import { stat } from "fs"
  */
 export default async function getFilesMatching(
   patterns,
-  { cwd, ignore = new Set(), ...options } = {}
+  { cwd, ignore = new Set(), ...options } = {},
 ) {
   if (!Array.isArray(patterns)) patterns = [patterns] // Convert to array
   const files = new Set() // Will contain the matching files
@@ -56,6 +56,6 @@ export default async function getFilesMatching(
  */
 async function isDir(path) {
   return await new Promise((res, rej) =>
-    stat(path, (err, stats) => (err ? rej(err) : res(stats.isDirectory())))
+    stat(path, (err, stats) => (err ? rej(err) : res(stats.isDirectory()))),
   )
 }

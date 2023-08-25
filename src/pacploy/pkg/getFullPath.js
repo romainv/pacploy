@@ -17,7 +17,7 @@ export default function getFullPath(path, relToPath = process.cwd()) {
   // Calculate the full path (use file's dirname if relevant)
   const fullPath = resolve(
     isDir(relToPath) ? relToPath : dirname(relToPath),
-    path
+    path,
   )
   // Append a trailing slash if result is a directory
   return isDir(fullPath) ? appendSlash(fullPath) : fullPath

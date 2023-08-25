@@ -37,7 +37,7 @@ export default async function pruneRetainedResources(stacks) {
         if ((await getStatus({ region, stackName })) !== "NEW")
           // Don't attempt to collect live resources if stack doesn't exist
           return await listLiveResourceArns({ region, stackName })
-      })
+      }),
     )
   ).flat() // Combine arns across all stacks (will remove inexisting stacks)
 
@@ -52,8 +52,8 @@ export default async function pruneRetainedResources(stacks) {
             stackName,
             exclude: liveResourceArns,
           })
-        ).map((arn) => ({ region, arn, forceDelete }))
-      )
+        ).map((arn) => ({ region, arn, forceDelete })),
+      ),
     )
   ).flat()
 
@@ -65,12 +65,12 @@ export default async function pruneRetainedResources(stacks) {
 
   // Auto-select the resources flagged with forceDelete
   const resourcesToDelete = retainedResources.filter(
-    ({ forceDelete }) => forceDelete
+    ({ forceDelete }) => forceDelete,
   )
 
   // Ask for confirmation for resources not flagged with forceDelete
   const resourcesToConfirm = retainedResources.filter(
-    ({ forceDelete }) => !forceDelete
+    ({ forceDelete }) => !forceDelete,
   )
   if (resourcesToConfirm.length > 0) {
     const { confirmedIds } = await tracker.prompt({
@@ -106,7 +106,7 @@ export default async function pruneRetainedResources(stacks) {
         }
         if (error) tracker.interruptWarn(`Failed to delete ${arn}: ${error}`)
         else tracker.interruptWarn(`Failed to delete ${arn}`)
-      })
+      }),
     )
   ).filter(Boolean) // Remove failed resources
 
@@ -119,13 +119,13 @@ export default async function pruneRetainedResources(stacks) {
           region,
           stackName,
           exclude: liveResourceArns,
-        })
-      )
+        }),
+      ),
     )
   ).flat()
   tracker.interruptInfo(
     `Deleted ${deletedResources.length} retained resources, ${
       retainedResourcesLeft.length ? retainedResourcesLeft.length : "none"
-    } left`
+    } left`,
   )
 }

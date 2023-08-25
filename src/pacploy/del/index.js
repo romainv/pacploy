@@ -13,7 +13,7 @@ import getStatus from "../getStatus/index.js"
  */
 export default async function del(
   stacks,
-  { warnAboutForceDelete = true } = {}
+  { warnAboutForceDelete = true } = {},
 ) {
   if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
 
@@ -22,7 +22,7 @@ export default async function del(
     warnAboutForceDelete &&
     stacks.reduce(
       (hasForceDelete, { forceDelete }) => hasForceDelete || forceDelete,
-      false
+      false,
     )
   )
     // Warn user that we'll not ask for confirmation before deleting
@@ -31,7 +31,7 @@ export default async function del(
   // Resolve stack parameters
   tracker.setStatus("resolving stacks parameters")
   const resolvedStacks = await Promise.all(
-    stacks.map((stack) => stack.resolve())
+    stacks.map((stack) => stack.resolve()),
   )
 
   // Check stack status
@@ -43,7 +43,7 @@ export default async function del(
           tracker.interruptInfo(`Stack ${stackName} already deleted`)
           return id
         }
-      })
+      }),
     )
   ).filter(Boolean)
 
@@ -86,7 +86,7 @@ export default async function del(
     })
     // Add the confirmed stacks to the list
     Object.values(confirmedIds).forEach(
-      (id) => (stacksToDelete[id] = _stacks[id])
+      (id) => (stacksToDelete[id] = _stacks[id]),
     )
   }
 

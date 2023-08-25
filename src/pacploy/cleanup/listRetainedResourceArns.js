@@ -39,17 +39,17 @@ export default async function listRetainedResourceArns({
     new GetResourcesCommand({
       PaginationToken: nextToken,
       TagFilters: [{ Key: "RootStackName", Values: [stackName] }],
-    })
+    }),
   )
   // Extract resources ARN
   const resources = ResourceTagMappingList.map(
-    ({ ResourceARN }) => ResourceARN
+    ({ ResourceARN }) => ResourceARN,
   ).filter(
     (arn) =>
       // Exclude resources that were explicitely requested to be excluded, or
       // whose type is not supported for deletion
       !exclude.includes(arn) &&
-      Object.keys(supported).includes(arn.split(":")[2])
+      Object.keys(supported).includes(arn.split(":")[2]),
   )
   // If resources span multiple pages, recursively retrieve them
   return PaginationToken
@@ -59,7 +59,7 @@ export default async function listRetainedResourceArns({
           stackName,
           nextToken: PaginationToken,
           exclude,
-        })
+        }),
       )
     : resources
 }

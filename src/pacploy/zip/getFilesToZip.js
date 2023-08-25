@@ -63,10 +63,10 @@ export default async function getFilesToZip(dir, bundleDir) {
         else
           return locatePath(
             [".pacployignore", ".dockerignore", ".npmignore", ".gitignore"],
-            { cwd: currentDir }
+            { cwd: currentDir },
           )
       },
-      { cwd: dir }
+      { cwd: dir },
     )
     ignorePatterns = ignorePath
       ? await readGlobPatterns(ignorePath) // Glob patterns defined in the file
@@ -79,7 +79,7 @@ export default async function getFilesToZip(dir, bundleDir) {
     // If ignorePatterns was provided in the config file, use the root
     // specified in that config file, otherwise match the patterns relative to
     // the ignore file
-    { cwd: ignoreDir }
+    { cwd: ignoreDir },
   )
   // Retrieve files to bundle (map to absolute path)
   const matches = await getFilesMatching(includePatterns, { cwd: root, ignore })
@@ -98,7 +98,7 @@ export default async function getFilesToZip(dir, bundleDir) {
       // Convert symlinks to their target path (same behavior as
       // require.resolve which is used to resolve dependency locations)
       realpath: true,
-    })
+    }),
   )
   // Retrieve files dependencies to bundle
   for (const [depName, depPath] of dependencies.entries()) {
@@ -113,14 +113,14 @@ export default async function getFilesToZip(dir, bundleDir) {
       // folders in symlinked packages in a monorepo
       ignore: await getFilesMatching(
         ignorePatterns.concat(alwaysIgnorePatterns),
-        { cwd: depPath }
+        { cwd: depPath },
       ),
     })
     matches.forEach((path) =>
       files.set(
         resolve(depPath, path),
-        join(bundleDir, depName, path) // Nest under the right dir in archive
-      )
+        join(bundleDir, depName, path), // Nest under the right dir in archive
+      ),
     )
   }
   return files
@@ -140,8 +140,8 @@ async function readGlobPatterns(file) {
             data
               .toString()
               .split("\n")
-              .filter((line) => !line.startsWith("#") && line.length > 0)
-          )
-    )
+              .filter((line) => !line.startsWith("#") && line.length > 0),
+          ),
+    ),
   )
 }

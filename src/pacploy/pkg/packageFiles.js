@@ -20,7 +20,7 @@ export default async function packageFiles(toPackage, stack) {
     else if (file.packageTo === "ECR" && !resolved.deployEcr)
       // If the file's destination is ECR but a repository is missing
       throw new Error(
-        `A docker repository is missing to package ${resolved.templatePath}`
+        `A docker repository is missing to package ${resolved.templatePath}`,
       )
 
   // Package all the files for all templates
@@ -54,11 +54,11 @@ async function _packageFiles(toPackage, stack) {
           dependencies: getDependencies(file, toPackage),
           stackTags,
           forceUpload,
-        })
+        }),
       )
       // Recursively package files that may depend on the current file
       return _packageFiles(toPackage, stack)
-    })
+    }),
   )
   return toPackage
 }
@@ -78,8 +78,8 @@ function getFilesReadyToPackage(toPackage) {
       // And whose dependencies have all been packaged already
       file.dependsOn.reduce(
         (allPackaged, path) => allPackaged && Boolean(toPackage[path].location),
-        true
-      )
+        true,
+      ),
   )
 }
 

@@ -29,14 +29,14 @@ if (cliArgs.includes("--stack-name"))
   // configurations matching it
   confs = confs.filter(
     ({ stackName } = { stackName: undefined }) =>
-      stackName === cliArgs[cliArgs.indexOf("--stack-name") + 1]
+      stackName === cliArgs[cliArgs.indexOf("--stack-name") + 1],
   )
 // Keep at least an empty conf object to process the CLI args
 if (confs.length === 0) confs.push({})
 
 // Resolve the arguments to use for each user-defined configuration
 let args = await Promise.all(
-  confs.map((curConf) => parseCommandArgs(commandDir, curConf, cliArgs))
+  confs.map((curConf) => parseCommandArgs(commandDir, curConf, cliArgs)),
 )
 // Some commands are not compatible with a list of stacks
 if (["zip", "errors"].includes(commandName) && args.length >= 1)
@@ -122,12 +122,12 @@ async function applyCommandDir(commandDir, args) {
   // Retrieve the commands definitions
   const files = await new Promise((res, rej) =>
     // Read all files from supplied directory
-    readdir(commandDir, (err, files) => (err ? rej(err) : res(files)))
+    readdir(commandDir, (err, files) => (err ? rej(err) : res(files))),
   )
   const commands = await Promise.all(
     files
       .filter((file) => file.endsWith(".js")) // Keep only JS files
-      .map((file) => import(join(commandDir, file))) // Import module
+      .map((file) => import(join(commandDir, file))), // Import module
   )
   const commandDefs = commands.map((module) => module.default)
 
@@ -137,7 +137,7 @@ async function applyCommandDir(commandDir, args) {
       commandDef.command,
       commandDef.describe,
       commandDef.builder || {},
-      commandDef.handler
+      commandDef.handler,
     )
   return args
 }

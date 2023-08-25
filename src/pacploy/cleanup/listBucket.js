@@ -31,7 +31,7 @@ export const tagDelimiter = ":"
 export default async function listBucket(
   { region, bucket, tagsFilters, exclude = [], pageSize = 1000 },
   versionIdMarker,
-  keyMarker
+  keyMarker,
 ) {
   const s3 = new S3Client({
     apiVersion: "2006-03-01",
@@ -53,7 +53,7 @@ export default async function listBucket(
       MaxKeys: pageSize,
       VersionIdMarker: versionIdMarker,
       KeyMarker: keyMarker,
-    })
+    }),
   )
 
   // Filter out keys that were excluded and format as expected
@@ -75,12 +75,12 @@ export default async function listBucket(
               Object.entries(tagsFilter).reduce(
                 (isMatch, [tagName, tagValue]) =>
                   isMatch && (tags[tagName] || []).includes(tagValue),
-                true
+                true,
               )
             )
               // If the tags match the current set, include the object
               return { ...object, tags }
-        })
+        }),
       )
     ).filter(Boolean) // Remove filtered-out objects
 
@@ -103,7 +103,7 @@ export async function getTags(region, bucket, key) {
   const { TagSet } = await call(
     s3,
     s3.send,
-    new GetObjectTaggingCommand({ Bucket: bucket, Key: key })
+    new GetObjectTaggingCommand({ Bucket: bucket, Key: key }),
   )
   // De-serialize the TagSet
   return TagSet.reduce((tags, { Key, Value }) => {

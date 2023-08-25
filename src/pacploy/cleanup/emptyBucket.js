@@ -38,7 +38,7 @@ export default async function emptyBucket({
         exclude,
       },
       nextVersionIdMarker,
-      nextKeyMarker
+      nextKeyMarker,
     )
     // Delete the object versions
     if (objects.length > 0) {
@@ -53,7 +53,7 @@ export default async function emptyBucket({
               VersionId: versionId,
             })),
           },
-        })
+        }),
       )
       deleted = deleted.concat(objects.map(({ key }) => key))
     }

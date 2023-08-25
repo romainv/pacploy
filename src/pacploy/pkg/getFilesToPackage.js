@@ -21,7 +21,7 @@ export default function getFilesToPackage(templatePath) {
       const resourceProp = new ResourceProperty(
         resourceType,
         propName,
-        propValue
+        propValue,
       )
       if (!Object.keys(toPackage).includes(curTemplatePath))
         // If current template has not yet been identified, register it
@@ -46,7 +46,7 @@ export default function getFilesToPackage(templatePath) {
           toPackage[curTemplatePath].dependsOn.push(filePath)
         }
       }
-    }
+    },
   )
   if (
     Object.keys(toPackage).length === 1 &&

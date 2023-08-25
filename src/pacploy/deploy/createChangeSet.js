@@ -26,7 +26,7 @@ import credentialDefaultProvider from "../credentialDefaultProvider.js"
  */
 export default async function createChangeSet(
   stack,
-  { quiet = false, attempts = 0 }
+  { quiet = false, attempts = 0 },
 ) {
   const { region, stackName } = stack
   const cf = new CloudFormationClient({
@@ -43,7 +43,7 @@ export default async function createChangeSet(
     ;({ Id: changeSetArn } = await call(
       cf,
       cf.send,
-      new CreateChangeSetCommand(args)
+      new CreateChangeSetCommand(args),
     ))
   } catch (err) {
     if (

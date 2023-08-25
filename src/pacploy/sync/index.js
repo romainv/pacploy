@@ -1,11 +1,10 @@
 import tracker from "../tracker.js"
-import { existsSync, readFileSync, writeFileSync } from "fs"
+import { existsSync, readFileSync, writeFileSync, appendFileSync } from "fs"
 import { available as availableStatuses } from "../statuses.js"
 import getStackOutputs from "./getStackOutputs.js"
 import getStatus from "../getStatus/index.js"
 import md5 from "../pkg/md5.js"
 import { basename, extname } from "path"
-import dotenv from "dotenv"
 
 /**
  * Download outputs of a deployed stack(s) into a local file(s)
@@ -29,7 +28,7 @@ export default async function sync(stacks, params) {
  */
 async function syncStack(
   { region, stackName, syncPath = [], noOverride },
-  { quiet = false } = {}
+  { quiet = false } = {},
 ) {
   // Convert syncPath to a list
   const syncPaths = Array.isArray(syncPath)
@@ -42,7 +41,7 @@ async function syncStack(
     else
       tracker.interruptWarn(
         `Skipped sync of stack ${stackName} to ${path}:` +
-          " file already exists and noOverride is set"
+          " file already exists and noOverride is set",
       )
     return res
   }, [])
@@ -53,7 +52,7 @@ async function syncStack(
   if (!availableStatuses.includes(status)) {
     // If stack is in a non available status
     tracker.interruptError(
-      `Stack ${stackName} is not available to sync (${status})`
+      `Stack ${stackName} is not available to sync (${status})`,
     )
     return
   }
@@ -69,16 +68,16 @@ async function syncStack(
         const wasUpdated = await syncOutputs(outputs, path)
         if (wasUpdated)
           tracker.interruptSuccess(
-            `Stack ${stackName} outputs synced at ${path}`
+            `Stack ${stackName} outputs synced at ${path}`,
           )
         else
           tracker.interruptInfo(`Stack ${stackName} outputs already up-to-date`)
       } catch (err) {
         tracker.interruptError(
-          `Failed to sync stack ${stackName} outputs to ${path}: ` + err
+          `Failed to sync stack ${stackName} outputs to ${path}: ` + err,
         )
       }
-    })
+    }),
   )
 
   return outputs
@@ -99,50 +98,50 @@ async function syncOutputs(newOutputs, path) {
   // Check if file format is supported
   if (!Object.keys(formats).includes(extension))
     throw new Error(`unsupported file format (${extension})`)
-  // If format is supported, retrieve its parser and serializer
-  const { parse, stringify } = formats[extension]
-  // Check if file exists
-  const exists = existsSync(path)
+  // If format is supported, retrieve how to update the target file
+  const update = formats[extension]
   // Retrieve existing file's hash, if any
-  const hashBefore = exists ? await md5(path) : undefined
-  // Load previous file content if it exists
-  const existingOutputs = exists ? parse(readFileSync(path, "utf8")) : {}
+  const hashBefore = existsSync(path) ? await md5(path) : undefined
   // Merge with the new outputs and update the file
-  writeFileSync(path, stringify(existingOutputs, newOutputs), "utf8")
+  update(newOutputs, path)
+  // Check updated file's hash
   const hashAfter = await md5(path)
   return hashAfter !== hashBefore
 }
 
 /**
- * Define the parsers and serializer of files in different formats. The parser
- * takes the existing file's contents and returns a key/value map. The
- * serializer takes the pre-existing and new key/value maps and returns the
- * file's content to write
+ * Define how new outputs are written in the target file
  * @type {Object<String, {parse: Function, stringify: Function}>}
  */
 const formats = {
-  ".json": {
-    parse: JSON.parse,
-    stringify: (prev, curr) => JSON.stringify(Object.assign({}, prev, curr)),
+  ".json": (newOutputs, path) => {
+    // Retrieve existing values if the target file exists
+    const existingValues = existsSync(path)
+      ? JSON.parse(readFileSync(path, "utf8"))
+      : {}
+    // Merge with the new outputs and update the file
+    const merged = Object.assign({}, existingValues, newOutputs)
+    // Update the target file
+    writeFileSync(path, JSON.stringify(merged), "utf8")
   },
-  ".env": {
-    parse: dotenv.parse,
-    stringify: (prev, curr) =>
-      Object.entries(
-        Object.assign(
-          {},
-          prev,
-          // Convert the new outputs keys to MACRO_CASE to properly merge them
-          // with existing keys
-          Object.entries(curr).reduce((formatted, [key, value]) => {
-            formatted[camelToMacroCase(key)] = value
-            return formatted
-          }, {})
+  ".env": (newOutputs, path) => {
+    // If the target file exists, add a line break at the end
+    if (existsSync(path)) appendFileSync(path, "\n", "utf8")
+    // To avoid conflicts, we leave any existing values untouched
+    // and only add new ones
+    appendFileSync(
+      path,
+      // Convert the new outputs keys to MACRO_CASE  and escape specialy
+      // characters in the value
+      Object.entries(newOutputs)
+        .map(
+          ([key, value]) => `${camelToMacroCase(key)}=${JSON.stringify(value)}`,
         )
-      )
-        // Escape specialy characters in the value
-        .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
         .join("\n"),
+      "utf8",
+    )
+    // Append a line break at the end of the file
+    appendFileSync(path, "\n", "utf8")
   },
 }
 

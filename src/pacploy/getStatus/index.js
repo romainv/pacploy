@@ -16,7 +16,7 @@ import credentialDefaultProvider from "../credentialDefaultProvider.js"
  */
 export default async function getStatus(
   { region, stackName },
-  { quiet = true } = {}
+  { quiet = true } = {},
 ) {
   const cf = new CloudFormationClient({
     apiVersion: "2010-05-15",
@@ -30,7 +30,7 @@ export default async function getStatus(
     const { Stacks: [{ StackStatus }] = [] } = await call(
       cf,
       cf.send,
-      new DescribeStacksCommand({ StackName: stackName })
+      new DescribeStacksCommand({ StackName: stackName }),
     )
     status = StackStatus
   } catch (err) {

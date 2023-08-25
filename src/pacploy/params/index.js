@@ -97,9 +97,9 @@ export default class StackParams {
                     return {
                       [stackName]: await getStackOutputs({ region, stackName }),
                     }
-                })
+                }),
               )
-            ).filter(Boolean)
+            ).filter(Boolean),
           )
         : {}
     // Return processed arguments

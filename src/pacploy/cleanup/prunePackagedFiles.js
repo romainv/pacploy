@@ -57,7 +57,7 @@ export default async function prunePackagedFiles(stacks) {
       grouped[region][deployBucket][id] = stack
       return grouped
     },
-    {}
+    {},
   )
 
   // If there are no stacks to prune, don't proceed further
@@ -68,9 +68,9 @@ export default async function prunePackagedFiles(stacks) {
         Object.values(buckets).reduce(
           (perBucketCount, stacks) =>
             perBucketCount + Object.keys(stacks).length,
-          0
+          0,
         ),
-      0
+      0,
     ) === 0
   )
     return
@@ -85,7 +85,7 @@ export default async function prunePackagedFiles(stacks) {
   // Retrieve the region, bucket and list of files to prune for each stack
   const prunableStacks = await getPackagedFilesToPrune(
     stacksToPrune,
-    filesInUse
+    filesInUse,
   )
   if (Object.keys(prunableStacks).length === 0) {
     tracker.interruptInfo("No files to prune")
@@ -107,8 +107,8 @@ export default async function prunePackagedFiles(stacks) {
           if (_stacks[id].forceDelete) stackIdsToPrune.push(id)
           else stackIdsToConfirm.push(id)
         }
-      })
-    )
+      }),
+    ),
   )
   if (stackIdsToConfirm.length > 0) {
     // Ask for user confirmation if needed
@@ -135,12 +135,12 @@ export default async function prunePackagedFiles(stacks) {
   if (stackIdsToPrune.length > 0) {
     const s = stackIdsToPrune.length > 1 ? "s" : ""
     tracker.setStatus(
-      `pruning old deployment files of ${stackIdsToPrune.length} stack${s}`
+      `pruning old deployment files of ${stackIdsToPrune.length} stack${s}`,
     )
     const prunedKeysCount = await pruneFiles(prunableStacks, stackIdsToPrune)
     // Display the number of pruned files
     tracker[prunedKeysCount ? "interruptSuccess" : "interruptInfo"](
-      `${prunedKeysCount ? prunedKeysCount : "No"} unused files pruned`
+      `${prunedKeysCount ? prunedKeysCount : "No"} unused files pruned`,
     )
   }
 }
@@ -192,22 +192,22 @@ async function pruneFiles(prunableStacks, stackIdsToPrune) {
                       VersionId: versionId,
                     })),
                   },
-                })
-              )
-            )
+                }),
+              ),
+            ),
           )
           // Return the list of pruned objects in the bucket
           return objectsToPrune
-        })
+        }),
       )
       // Return the count of pruned objects in the region
       return prunedObjects.reduce((count, objects) => count + objects.length, 0)
-    })
+    }),
   )
   // Return the count of pruned objects across regions
   return countPerRegion.reduce(
     (count, countPerBucket) => count + countPerBucket,
-    0
+    0,
   )
 }
 

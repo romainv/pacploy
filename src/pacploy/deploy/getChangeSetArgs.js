@@ -59,14 +59,14 @@ export default async function getChangeSetArgs({
                   : Array.isArray(ParameterValue)
                   ? ParameterValue.join(",")
                   : JSON.stringify(ParameterValue),
-            }
-      )
+            },
+      ),
     )
     .filter(
       ({ ParameterKey }) =>
         requiredParameters
           .map(({ ParameterKey }) => ParameterKey) // Required param keys
-          .includes(ParameterKey) // Current provided key
+          .includes(ParameterKey), // Current provided key
     )
   // Build tags (change format)
   const Tags =
@@ -90,6 +90,6 @@ export default async function getChangeSetArgs({
       Parameters,
       Tags,
     },
-    templateArg
+    templateArg,
   )
 }

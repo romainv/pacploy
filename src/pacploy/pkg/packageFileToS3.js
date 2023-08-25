@@ -32,7 +32,7 @@ import { getTags, tagDelimiter } from "../cleanup/listBucket.js"
  */
 export default async function packageFileToS3(
   file,
-  { region, deployBucket, dependencies, forceUpload = false, stackTags = {} }
+  { region, deployBucket, dependencies, forceUpload = false, stackTags = {} },
 ) {
   const s3 = new S3Client({
     apiVersion: "2006-03-01",
@@ -74,7 +74,7 @@ export default async function packageFileToS3(
     await call(
       s3,
       s3.send,
-      new HeadObjectCommand({ Bucket: deployBucket, Key: key })
+      new HeadObjectCommand({ Bucket: deployBucket, Key: key }),
     )
     exists = true
     status = "exists"
@@ -123,13 +123,13 @@ async function updateTags(stackTags, region, bucket, key) {
 
   // Merge values in case multiple stacks use the same file
   const allKeys = Array.from(
-    new Set(Object.keys(existingTags).concat(Object.keys(stackTags)))
+    new Set(Object.keys(existingTags).concat(Object.keys(stackTags))),
   )
   const tagsToApply = allKeys.reduce((merged, key) => {
     const existing = existingTags[key] || []
     const updated = stackTags[key] ? [stackTags[key]] : []
     merged[key] = Array.from(new Set(existing.concat(updated))).join(
-      tagDelimiter
+      tagDelimiter,
     )
     return merged
   }, {})
@@ -147,6 +147,6 @@ async function updateTags(stackTags, region, bucket, key) {
           Value,
         })),
       },
-    })
+    }),
   )
 }
