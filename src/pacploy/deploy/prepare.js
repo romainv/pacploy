@@ -32,7 +32,7 @@ export default async function prepare(stack) {
         [
           `Stack is in status ${status}`,
           `and needs to be deleted before attempting to create it again`,
-        ].join(" ")
+        ].join(" "),
       )
     // Delete stack
     await del(stack, { warnAboutForceDelete: false })

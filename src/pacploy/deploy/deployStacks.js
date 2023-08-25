@@ -33,13 +33,13 @@ export default async function deployStacks(stacks) {
         if (dependents.length > 0) {
           // If stack had dependents, warn they won't be deployed
           const uniqueNames = new Set(
-            dependents.map(({ stackName }) => stackName)
+            dependents.map(({ stackName }) => stackName),
           )
           const s = uniqueNames.size > 1 ? "s" : ""
           tracker.interruptWarn(
             `Skipped deployment of ${
               uniqueNames.size
-            } dependent stack${s}: ${Array.from(uniqueNames).join(", ")}`
+            } dependent stack${s}: ${Array.from(uniqueNames).join(", ")}`,
           )
         }
         return // Don't process further stacks
@@ -49,7 +49,7 @@ export default async function deployStacks(stacks) {
       updateTracker(stacks)
       // Recursively deploy stacks that may depend on the current one
       return deployStacks(stacks)
-    })
+    }),
   )
 }
 
@@ -61,14 +61,14 @@ export default async function deployStacks(stacks) {
 function updateTracker(stacks) {
   const total = stacks.length
   const left = stacks.filter(
-    ({ deploymentStatus }) => !["success", "failed"].includes(deploymentStatus)
+    ({ deploymentStatus }) => !["success", "failed"].includes(deploymentStatus),
   ).length
   const inProgress = stacks.filter(
-    ({ deploymentStatus }) => deploymentStatus === "in progress"
+    ({ deploymentStatus }) => deploymentStatus === "in progress",
   ).length
   if (total > 1)
     tracker.setStatus(
-      `deploying ${total} stacks (${left} left, ${inProgress} in progress)`
+      `deploying ${total} stacks (${left} left, ${inProgress} in progress)`,
     )
   else tracker.setStatus(`deploying stack`)
 }
@@ -90,8 +90,8 @@ function getStacksReadyToDeploy(stacks) {
       getDependencies({ dependsOn }, stacks).reduce(
         (allDeployed, { deploymentStatus }) =>
           allDeployed && deploymentStatus === "success",
-        true
-      )
+        true,
+      ),
   )
 }
 
@@ -139,8 +139,8 @@ function getDependents({ region, stackName }, stacks) {
           dependents = dependents.concat(
             getDependents(
               { region: stack.region, stackName: stack.stackName },
-              stacks
-            )
+              stacks,
+            ),
           )
           break
         }

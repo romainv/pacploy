@@ -31,13 +31,13 @@ export default async function pkg(stacks, { quiet = false } = {}) {
   // Package templates
   const filesCount = stacksToPackage.reduce(
     (count, { toPackage }) => count + Object.keys(toPackage).length,
-    0
+    0,
   )
   if (!quiet) tracker.setStatus(`packaging ${filesCount} files`)
   const packagedTemplates = await Promise.all(
     stacksToPackage.map(({ toPackage, ...stack }) =>
-      packageFiles(toPackage, new StackParams(stack))
-    )
+      packageFiles(toPackage, new StackParams(stack)),
+    ),
   )
 
   // Verify that all files were packaged
@@ -46,7 +46,7 @@ export default async function pkg(stacks, { quiet = false } = {}) {
     const actual = Object.keys(packagedTemplates[index]).length
     if (actual !== expected)
       throw new Error(
-        `Expected to package ${expected} files, but ${actual} were packaged`
+        `Expected to package ${expected} files, but ${actual} were packaged`,
       )
   }
 
@@ -56,16 +56,16 @@ export default async function pkg(stacks, { quiet = false } = {}) {
       count +
       Object.values(packagedFiles).filter(({ status }) => status !== "exists")
         .length,
-    0
+    0,
   )
   const totalCount = packagedTemplates.reduce(
     (count, packagedFiles) => count + Object.keys(packagedFiles).length,
-    0
+    0,
   )
   if (!quiet)
     if (newCount > 0)
       tracker.interruptSuccess(
-        `${newCount} new files packaged (${totalCount} in total)`
+        `${newCount} new files packaged (${totalCount} in total)`,
       )
     else
       tracker.interruptInfo(`No new files to package (${totalCount} in total)`)
@@ -77,7 +77,7 @@ export default async function pkg(stacks, { quiet = false } = {}) {
     paths.push(
       Object.keys(packagedTemplates[index]).includes(templatePath)
         ? packagedTemplates[index][templatePath].location
-        : templatePath
+        : templatePath,
     )
   return paths
 }

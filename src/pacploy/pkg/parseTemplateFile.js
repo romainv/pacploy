@@ -34,6 +34,6 @@ export default function parseTemplateFile(templatePath, fn) {
           propValue,
         })
       })
-    }
+    },
   )
 }

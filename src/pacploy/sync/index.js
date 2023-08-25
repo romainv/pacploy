@@ -29,7 +29,7 @@ export default async function sync(stacks, params) {
  */
 async function syncStack(
   { region, stackName, syncPath = [], noOverride },
-  { quiet = false } = {}
+  { quiet = false } = {},
 ) {
   // Convert syncPath to a list
   const syncPaths = Array.isArray(syncPath)
@@ -42,7 +42,7 @@ async function syncStack(
     else
       tracker.interruptWarn(
         `Skipped sync of stack ${stackName} to ${path}:` +
-          " file already exists and noOverride is set"
+          " file already exists and noOverride is set",
       )
     return res
   }, [])
@@ -53,7 +53,7 @@ async function syncStack(
   if (!availableStatuses.includes(status)) {
     // If stack is in a non available status
     tracker.interruptError(
-      `Stack ${stackName} is not available to sync (${status})`
+      `Stack ${stackName} is not available to sync (${status})`,
     )
     return
   }
@@ -69,16 +69,16 @@ async function syncStack(
         const wasUpdated = await syncOutputs(outputs, path)
         if (wasUpdated)
           tracker.interruptSuccess(
-            `Stack ${stackName} outputs synced at ${path}`
+            `Stack ${stackName} outputs synced at ${path}`,
           )
         else
           tracker.interruptInfo(`Stack ${stackName} outputs already up-to-date`)
       } catch (err) {
         tracker.interruptError(
-          `Failed to sync stack ${stackName} outputs to ${path}: ` + err
+          `Failed to sync stack ${stackName} outputs to ${path}: ` + err,
         )
       }
-    })
+    }),
   )
 
   return outputs
@@ -137,8 +137,8 @@ const formats = {
           Object.entries(curr).reduce((formatted, [key, value]) => {
             formatted[camelToMacroCase(key)] = value
             return formatted
-          }, {})
-        )
+          }, {}),
+        ),
       )
         // Escape specialy characters in the value
         .map(([key, value]) => `${key}=${JSON.stringify(value)}`)

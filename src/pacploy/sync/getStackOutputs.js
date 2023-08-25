@@ -22,11 +22,11 @@ export default async function getStackInfo({ region, stackName }) {
   const { Stacks: [{ Outputs = [] }] = [] } = await call(
     cf,
     cf.send,
-    new DescribeStacksCommand({ StackName: stackName })
+    new DescribeStacksCommand({ StackName: stackName }),
   )
   // Serialize the output format
   return Outputs.reduce(
     (res, val) => Object.assign(res, { [val.OutputKey]: val.OutputValue }),
-    {}
+    {},
   )
 }

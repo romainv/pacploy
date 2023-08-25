@@ -36,8 +36,8 @@ export default async function deleteStacks(stacks) {
         updateTracker(stacks)
         // Recursively delete stacks that may have depended on the current one
         return deleteStacks(stacks)
-      }
-    )
+      },
+    ),
   )
 }
 
@@ -49,14 +49,14 @@ export default async function deleteStacks(stacks) {
 function updateTracker(stacks) {
   const total = Object.keys(stacks).length
   const left = Object.values(stacks).filter(
-    ({ deleteStatus }) => !["success", "failed"].includes(deleteStatus)
+    ({ deleteStatus }) => !["success", "failed"].includes(deleteStatus),
   ).length
   const inProgress = Object.values(stacks).filter(
-    ({ deleteStatus }) => deleteStatus === "in progress"
+    ({ deleteStatus }) => deleteStatus === "in progress",
   ).length
   if (total > 1)
     tracker.setStatus(
-      `deleting ${total} stacks (${left} left, ${inProgress} in progress)`
+      `deleting ${total} stacks (${left} left, ${inProgress} in progress)`,
     )
   else tracker.setStatus("deleting stack")
 }
@@ -79,7 +79,7 @@ function getStacksReadyToDelete(stacks) {
       getDependents({ region, stackName }, stacks).reduce(
         (allDeleted, { deleteStatus }) =>
           allDeleted && deleteStatus === "success",
-        true
+        true,
       )
     )
       readyStacks[id] = stack

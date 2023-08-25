@@ -100,9 +100,9 @@ export class Tracker extends ProgressBar {
         Object.entries(this._tokens).reduce(
           (width, [token, value]) =>
             token === "status" ? width : width + value.length,
-          0
+          0,
         ) -
-        2 // Additional buffer to ensure there is no line wrap
+        2, // Additional buffer to ensure there is no line wrap
     )
     // Start the spinner if needed
     if ((!this.spinner || this.spinner._destroyed) && this.curr < this.total)

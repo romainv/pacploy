@@ -88,7 +88,7 @@ async function deleteS3Bucket(region, bucket) {
     new DeleteBucketCommand({
       Bucket: bucket,
       credentialDefaultProvider,
-    })
+    }),
   )
 }
 
@@ -106,7 +106,7 @@ async function deleteECR(region, repositoryName) {
   await call(
     ecr,
     ecr.send,
-    new DeleteRepositoryCommand({ repositoryName, force: true })
+    new DeleteRepositoryCommand({ repositoryName, force: true }),
   )
 }
 
@@ -147,15 +147,15 @@ async function deleteCognitoUserPool(region, userPoolId, arn) {
           await call(
             userPool,
             userPool.send,
-            new ListTagsForIdentityProviderCommand({ ResourceArn: arn })
-          )
+            new ListTagsForIdentityProviderCommand({ ResourceArn: arn }),
+          ),
         ),
-      })
+      }),
     )
     await call(
       userPool,
       userPool.send,
-      new DeleteUserPoolCommand({ UserPoolId: userPoolId })
+      new DeleteUserPoolCommand({ UserPoolId: userPoolId }),
     )
   } catch (err) {
     if (err.code !== "ResourceNotFoundException")
@@ -191,17 +191,17 @@ async function deleteCognitoIdentityPool(region, identityPoolId, arn) {
             identityPool.send,
             new ListTagsForCognitoPoolCommand({
               ResourceArn: arn,
-            })
-          )
+            }),
+          ),
         ),
-      })
+      }),
     )
     await call(
       identityPool,
       identityPool.send,
       new DeleteIdentityPoolCommand({
         IdentityPoolId: identityPoolId,
-      })
+      }),
     )
   } catch (err) {
     if (err.code !== "ResourceNotFoundException")
@@ -230,6 +230,6 @@ async function deleteAthenaWorkgroup(region, workgroup) {
       WorkGroup: workgroup,
       // Delete any named queries or query executions
       RecursiveDeleteOption: true,
-    })
+    }),
   )
 }

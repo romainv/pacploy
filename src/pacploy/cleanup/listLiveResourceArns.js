@@ -35,13 +35,13 @@ export default async function listLiveResourceArns({
     new ListStackResourcesCommand({
       StackName: stackName,
       NextToken: nextToken,
-    })
+    }),
   )
   // Retrieve region and account ID from the current stack arn
   const { Stacks: [{ StackId }] = [] } = await call(
     cf,
     cf.send,
-    new DescribeStacksCommand({ StackName: stackName })
+    new DescribeStacksCommand({ StackName: stackName }),
   )
   const accountId = StackId.split(":")[4]
   // Extract the resources arns, including those in nested stacks
@@ -50,7 +50,7 @@ export default async function listLiveResourceArns({
     await StackResourceSummaries.reduce(
       async (
         res,
-        { ResourceType: resourceType, PhysicalResourceId: physicalResourceId }
+        { ResourceType: resourceType, PhysicalResourceId: physicalResourceId },
       ) => {
         res = await res // Retrieve current value, as this is an async reducer
         if (resourceType === "AWS::CloudFormation::Stack")
@@ -59,7 +59,7 @@ export default async function listLiveResourceArns({
             await listLiveResourceArns({
               region,
               stackName: physicalResourceId,
-            })
+            }),
           )
         else if (Object.values(supported).includes(resourceType))
           // If the resource is supported to be deleted. We ignore other
@@ -71,12 +71,12 @@ export default async function listLiveResourceArns({
               physicalResourceId,
               accountId,
               region,
-            })
+            }),
           )
         return res
       },
-      Promise.resolve([])
-    )
+      Promise.resolve([]),
+    ),
   )
   // If resources span multiple pages, recursively retrieve them
   return NextToken
@@ -85,7 +85,7 @@ export default async function listLiveResourceArns({
           region,
           stackName,
           nextToken: NextToken,
-        })
+        }),
       )
     : resources
 }
@@ -124,7 +124,7 @@ function getResourceArn({
     case "AWS::SQS::Queue":
       return physicalResourceId.replace(
         `https://sqs.${region}.amazonaws.com/${accountId}/`,
-        `arn:aws:sqs:${region}:${accountId}:`
+        `arn:aws:sqs:${region}:${accountId}:`,
       )
     case "AWS::Events::Rule":
       return `arn:aws:events:${region}:${accountId}:rule/${physicalResourceId}`
@@ -142,7 +142,7 @@ function getResourceArn({
         throw new Error(
           `The arn of resource ${resourceType}` +
             ` ${physicalResourceId} could not be generated and the` +
-            ` resource would be deleted inadvertently`
+            ` resource would be deleted inadvertently`,
         )
   }
 }

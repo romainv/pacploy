@@ -15,7 +15,7 @@ export default async function deploy(stacks) {
   if (
     stacks.reduce(
       (hasForceDelete, { forceDelete }) => hasForceDelete || forceDelete,
-      false
+      false,
     )
   )
     // Warn user that we'll not ask for confirmation before deleting
@@ -38,7 +38,9 @@ export default async function deploy(stacks) {
   // Validate templates
   tracker.setStatus(`validating template${s}`)
   await Promise.all(
-    stacks.map(({ region, templatePath }) => validate({ region, templatePath }))
+    stacks.map(({ region, templatePath }) =>
+      validate({ region, templatePath }),
+    ),
   )
 
   // Prepare stacks for deployment
@@ -47,7 +49,7 @@ export default async function deploy(stacks) {
     stacks.map(async (stack) => {
       const stackStatus = await prepare(stack)
       stacks[stack.index].stackStatus = stackStatus
-    })
+    }),
   )
 
   // Deploy the stacks

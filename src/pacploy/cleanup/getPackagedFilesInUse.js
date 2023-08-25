@@ -17,8 +17,8 @@ export default async function getPackagedFilesInUse(stacks) {
         stacks.map(async ({ region, stackName, deployBucket }) =>
           (await getStatus({ region, stackName })) === "NEW"
             ? []
-            : await listPackagedFiles({ region, stackName, deployBucket })
-        )
+            : await listPackagedFiles({ region, stackName, deployBucket }),
+        ),
       )
     )
       // De-duplicate the files in use and group them by bucket

@@ -10,14 +10,14 @@ import colors from "ansi-colors"
 export default function displayEvents(
   { ResourceStatus, ResourceStatusReason, LogicalResourceId, resources = {} },
   delimiter = " ",
-  indentation = 1
+  indentation = 1,
 ) {
   // Display current stack event
   if (ResourceStatus)
     tracker.interrupt(
       `${delimiter.repeat(indentation)}${colors.bold.red(
-        `\u2717 ${LogicalResourceId} ${ResourceStatus}`
-      )}${ResourceStatusReason ? `: ${ResourceStatusReason}` : ""}`
+        `\u2717 ${LogicalResourceId} ${ResourceStatus}`,
+      )}${ResourceStatusReason ? `: ${ResourceStatusReason}` : ""}`,
     )
   // Display nested resources if any
   if (Object.keys(resources).length > 0)
