@@ -35,7 +35,7 @@ export default async function deployStack(stack) {
     // Create root change set
     const { changeSetArn, hasChanges } = await createChangeSet(
       new ResolvedStackParams({ ...resolved, templatePath: templateURL }),
-      { quiet: true }
+      { quiet: true },
     )
     if (hasChanges) {
       const cf = new CloudFormationClient({
@@ -47,7 +47,7 @@ export default async function deployStack(stack) {
       await call(
         cf,
         cf.send,
-        new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn })
+        new ExecuteChangeSetCommand({ ChangeSetName: changeSetArn }),
       )
       deployStarted = true
       const deployStatus = await waitForStatus({
@@ -76,7 +76,7 @@ export default async function deployStack(stack) {
       await errors({ region: stack.region, stackName: stack.stackName })
     else
       tracker.interruptError(
-        `Failed to deploy stack ${stack.stackName}: ${err}`
+        `Failed to deploy stack ${stack.stackName}: ${err}`,
       )
     process.exitCode = 1
     return false

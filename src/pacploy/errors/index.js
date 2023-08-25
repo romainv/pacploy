@@ -43,7 +43,7 @@ export default async function getErrors({
       new DescribeStackEventsCommand({
         StackName: stackName,
         NextToken: nextToken,
-      })
+      }),
     )
     nextToken = NextToken // Update the token
     if (!eventsPage.length) return // If no events were found
@@ -60,7 +60,7 @@ export default async function getErrors({
         // Event describes the stack in a stable status
         stableStatuses.includes(ResourceStatus) &&
         // Event is older than our upper boundary
-        Timestamp < timestamp1
+        Timestamp < timestamp1,
     )
     if (nextStackEvents.length) timestamp2 = nextStackEvents[0].Timestamp
     lastTimestamp = eventsPage[eventsPage.length - 1].Timestamp
@@ -72,7 +72,7 @@ export default async function getErrors({
         (Timestamp > timestamp2 || !timestamp2) &&
         // Event is an error
         /[A-Z]+_FAILED$/.test(ResourceStatus) &&
-        ResourceStatusReason !== "Resource creation cancelled"
+        ResourceStatusReason !== "Resource creation cancelled",
     )
     // Add relevant events
     events = events.concat(nextEvents)
@@ -91,7 +91,7 @@ export default async function getErrors({
         StackId,
         PhysicalResourceId,
         ResourceType,
-      }
+      },
     ) => {
       errors = await errors // Retrieve object, since this is an async reduce
       if (StackId !== PhysicalResourceId) {
@@ -120,13 +120,13 @@ export default async function getErrors({
                 timestamp1,
                 timestamp2,
                 parentStackId: parentStackId || StackId,
-              })
+              }),
             )
         }
       }
       return errors
     },
-    Promise.resolve({})
+    Promise.resolve({}),
   )
   if (!parentStackId) {
     // Display errors before final return

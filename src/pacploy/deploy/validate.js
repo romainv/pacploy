@@ -28,7 +28,7 @@ export default async function validate({ region, templatePath }) {
       new ValidateTemplateCommand({
         // Open template as string
         TemplateBody: readFileSync(templatePath, "utf8"),
-      })
+      }),
     )
     return true
   } catch (err) {

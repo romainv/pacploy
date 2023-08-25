@@ -25,7 +25,7 @@ const docker = new Docker()
  */
 export default async function packageFileToECR(
   file,
-  { region, deployEcr, forceUpload = false }
+  { region, deployEcr, forceUpload = false },
 ) {
   // Retrieve parameters, if any
   // Resolve root directory relative to the config file
@@ -74,7 +74,7 @@ export default async function packageFileToECR(
   // Build the image
   const buildStream = await docker.buildImage(
     file.path,
-    Object.assign({ t: imageName, nocache: forceUpload }, dockerBuild)
+    Object.assign({ t: imageName, nocache: forceUpload }, dockerBuild),
   )
   await waitFor(buildStream)
   // Push the image to the repository (this will only push layers that have
@@ -126,7 +126,7 @@ async function getToken(region) {
       // registryIds is not passed (it tries to read properties of undefined).
       // A future update may make passing registryIds optional again, as it
       // seems that the permissions are not impacted
-      new GetAuthorizationTokenCommand({ registryIds: ["000000000000"] })
+      new GetAuthorizationTokenCommand({ registryIds: ["000000000000"] }),
     )
   const [username, password] = Buffer.from(authorizationToken, "base64")
     .toString()
@@ -154,9 +154,9 @@ function waitFor(stream) {
           reject(
             logs
               .map((log) =>
-                (log.error || log.stream || JSON.stringify(log)).trim()
+                (log.error || log.stream || JSON.stringify(log)).trim(),
               )
-              .join("\n")
+              .join("\n"),
           )
         else resolve(logs.map((log) => log.stream || log))
       }

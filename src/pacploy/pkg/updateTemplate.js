@@ -23,7 +23,7 @@ export default function updateTemplate(templatePath, { dependencies }) {
       const resourceProp = new ResourceProperty(
         resourceType,
         propName,
-        propValue
+        propValue,
       )
       // Combine all files to package across destinations and map their
       // absolute path to their relative one
@@ -33,9 +33,9 @@ export default function updateTemplate(templatePath, { dependencies }) {
             toPackage,
             ...relPaths.map((relPath) => ({
               [getFullPath(relPath, templatePath)]: relPath,
-            }))
+            })),
           ),
-        {}
+        {},
       )
       if (Object.keys(toPackage).length > 0)
         // If current property has files to package, replace its value with the
@@ -53,8 +53,8 @@ export default function updateTemplate(templatePath, { dependencies }) {
                   res[toPackage[originalPath]] = location
                 return res
               },
-              {}
-            )
+              {},
+            ),
           )
     }
   }

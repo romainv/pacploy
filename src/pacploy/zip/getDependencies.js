@@ -17,7 +17,7 @@ export default function getDependencies(
   cwd,
   ignore = new Set(),
   deps = new Map(),
-  bundledDependencies = depList
+  bundledDependencies = depList,
 ) {
   depList.forEach((dep) => {
     // Retrieve the dependency location
@@ -41,7 +41,7 @@ export default function getDependencies(
         dirname(depPath),
         ignore,
         deps,
-        depList // Preserve the original list of dependencies to bundle
+        depList, // Preserve the original list of dependencies to bundle
       )
     }
   })

@@ -21,7 +21,7 @@ export default class File {
    */
   constructor(
     path,
-    { resourceType, propName, packageTo, status = "pending", dependsOn = [] }
+    { resourceType, propName, packageTo, status = "pending", dependsOn = [] },
   ) {
     this.path = path
     this.originalPath = path // Keep track as file path may be changed

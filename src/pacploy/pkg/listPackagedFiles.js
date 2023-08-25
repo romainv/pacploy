@@ -39,7 +39,7 @@ export default async function listPackagedFiles({
     new GetTemplateCommand({
       StackName: stackName,
       TemplateStage: "Processed",
-    })
+    }),
   )
   if (deployBucket) {
     // If the template's deployBucket was passed, recalculate its key as it is
@@ -51,7 +51,7 @@ export default async function listPackagedFiles({
         StackName: stackName,
         // Use the original content as it was used to calculate the hash
         TemplateStage: "Original",
-      })
+      }),
     )
     packaged.push({
       region,
@@ -67,7 +67,7 @@ export default async function listPackagedFiles({
       const resourceProp = new ResourceProperty(
         resourceType,
         propName,
-        propValue
+        propValue,
       )
       if (resourceProp.packaged.S3) {
         // If current resource has files packaged to S3
@@ -76,7 +76,7 @@ export default async function listPackagedFiles({
             !packaged.reduce(
               (res, { Bucket: curBucket, Key: curKey }) =>
                 res || (bucket === curBucket && key === curKey),
-              false
+              false,
             )
           )
             // If current resource was not identified yet, add it to the list

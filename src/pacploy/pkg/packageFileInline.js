@@ -20,7 +20,7 @@ export default async function packageFileInline(file, { forceUpload = false }) {
   if (forceUpload || status !== "exists") {
     // If object doesn't exist yet, or upload was forced: update it
     await new Promise((res, rej) =>
-      copyFile(file.path, targetPath, (err) => (err ? rej(err) : res()))
+      copyFile(file.path, targetPath, (err) => (err ? rej(err) : res())),
     )
     status = status === "exists" ? "forced" : "updated"
   }

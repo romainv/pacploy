@@ -35,7 +35,7 @@ export default async function waitForStatus({
   })
   // Check if the supplied arn is that of a change set or a stack
   const isChangeSet = /arn:aws:cloudformation:[^:]+:[^:]+:changeSet\/.+/.test(
-    arn
+    arn,
   )
   let status, statusReason
   do {
@@ -45,7 +45,7 @@ export default async function waitForStatus({
       ;({ Status: status, StatusReason: statusReason } = await call(
         cf,
         cf.send,
-        new DescribeChangeSetCommand({ ChangeSetName: arn })
+        new DescribeChangeSetCommand({ ChangeSetName: arn }),
       ))
     } else {
       // Retrieve status of a stack
@@ -56,7 +56,7 @@ export default async function waitForStatus({
       } = await call(
         cf,
         cf.send,
-        new DescribeStacksCommand({ StackName: arn })
+        new DescribeStacksCommand({ StackName: arn }),
       ))
     }
     if (msg) tracker.setStatus(`${msg} (${status})`)

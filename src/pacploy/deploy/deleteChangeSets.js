@@ -43,20 +43,20 @@ export default async function deleteChangeSets({
         await call(
           cf,
           cf.send,
-          new DeleteChangeSetCommand({ ChangeSetName: changeSetId })
+          new DeleteChangeSetCommand({ ChangeSetName: changeSetId }),
         )
         changeSetsDeleted.push(changeSetId)
         tracker.setStatus(
           [
             `${changeSetsDeleted.length} of ${changeSetsToDelete.length}`,
             "change sets deleted",
-          ].join(" ")
+          ].join(" "),
         )
       } catch (err) {
         tracker.interruptError(`Failed to delete change set ${changeSetId}`)
         throw err
       }
-    })
+    }),
   )
   return changeSetsDeleted
 }

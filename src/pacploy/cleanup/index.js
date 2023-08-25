@@ -13,7 +13,7 @@ import pruneRetainedResources from "./pruneRetainedResources.js"
  */
 export default async function cleanup(
   stacks,
-  { warnAboutForceDelete = true } = {}
+  { warnAboutForceDelete = true } = {},
 ) {
   if (!Array.isArray(stacks)) stacks = [stacks] // Convert to array
 
@@ -22,7 +22,7 @@ export default async function cleanup(
     warnAboutForceDelete &&
     stacks.reduce(
       (hasForceDelete, { forceDelete }) => hasForceDelete || forceDelete,
-      false
+      false,
     )
   )
     // Warn user that we may not ask for confirmation before deleting

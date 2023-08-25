@@ -34,7 +34,7 @@ export default async function getChangeSets({
     new ListChangeSetsCommand({
       StackName: stackName,
       NextToken: nextToken,
-    })
+    }),
   )
   // Append the changes to the list
   changeSets = changeSets.concat(Summaries)

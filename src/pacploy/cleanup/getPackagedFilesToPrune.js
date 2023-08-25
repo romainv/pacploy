@@ -26,19 +26,19 @@ export default async function getPackagedFilesToPrune(stacksToPrune, exclude) {
                 region,
                 bucket,
                 stacks,
-                (exclude[region] || {})[bucket]
+                (exclude[region] || {})[bucket],
               )
               if (Object.keys(filesToPruneInBucket).length > 0)
                 // If there are any files to prune in the bucket
                 return { [bucket]: filesToPruneInBucket }
-            })
-          ))
+            }),
+          )),
         )
         if (Object.keys(filesToPruneInRegion).length > 0)
           // If there are any files to prune in the region
           return { [region]: filesToPruneInRegion }
-      })
-    ))
+      }),
+    )),
   )
 }
 
@@ -72,7 +72,7 @@ async function getFilesToPruneInBucket(region, bucket, stacks, exclude) {
         exclude,
       },
       nextVersionIdMarker,
-      nextKeyMarker
+      nextKeyMarker,
     )
     filesToPruneInBucket = filesToPruneInBucket.concat(objects)
   } while (nextVersionIdMarker || nextKeyMarker)

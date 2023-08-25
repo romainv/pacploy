@@ -40,6 +40,6 @@ export default async function packageFile({
   // If packageTo was not recognized
   throw new Error(
     `Unable to determine where file '${file.path}' should be packaged` +
-      ` (value '${file.packageTo}' not recognized)`
+      ` (value '${file.packageTo}' not recognized)`,
   )
 }

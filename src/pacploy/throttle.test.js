@@ -24,7 +24,7 @@ describe("throttle", () => {
     test1 = new Promise((res) => {
       const interval = setInterval(() => {
         attempted.push(
-          throttled1().catch((err) => err.name === "AbortError" && aborted++)
+          throttled1().catch((err) => err.name === "AbortError" && aborted++),
         )
         if (attempted.length === 20) {
           clearInterval(interval) // Stop executing the function
@@ -51,10 +51,10 @@ describe("throttle", () => {
       await new Promise((res) => {
         const interval = setInterval(() => {
           attempted.push(
-            throttled1().catch((err) => err.name === "AbortError" && aborted++)
+            throttled1().catch((err) => err.name === "AbortError" && aborted++),
           )
           attempted.push(
-            throttled2().catch((err) => err.name === "AbortError" && aborted++)
+            throttled2().catch((err) => err.name === "AbortError" && aborted++),
           )
           if (attempted.length === 40) {
             clearInterval(interval) // Stop executing the functions
@@ -75,19 +75,19 @@ describe("throttle", () => {
 
   test("limits requests from a single function in the interval", async () => {
     await expect(test1).resolves.toEqual(
-      expect.objectContaining({ attempted: 20, executed: 5, aborted: 0 })
+      expect.objectContaining({ attempted: 20, executed: 5, aborted: 0 }),
     )
   })
 
   test("processes all requests while meeting rate limit", async () => {
     await expect(test2).resolves.toEqual(
-      expect.objectContaining({ attempted: 20, executed: 20, aborted: 0 })
+      expect.objectContaining({ attempted: 20, executed: 20, aborted: 0 }),
     )
   })
 
   test("limits requests from multiple functions in the interval", async () => {
     await expect(test3).resolves.toEqual(
-      expect.objectContaining({ attempted: 40, executed: 5, aborted: 0 })
+      expect.objectContaining({ attempted: 40, executed: 5, aborted: 0 }),
     )
   })
 
