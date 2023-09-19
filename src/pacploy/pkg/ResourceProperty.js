@@ -426,6 +426,15 @@ const packingList = {
       Key: parseS3Uri(location).Key,
     }),
   },
+  "AWS::EMRServerless::Application.ImageConfiguration": {
+    // propValue is the ImageConfiguration property which contains ImageUri
+    toPackage: (propValue) =>
+      !isValidECRUri(propValue.ImageUri) ? { ECR: [propValue.ImageUri] } : {},
+    packaged: (propValue) =>
+      isValidECRUri(propValue.ImageUri) ? { ECR: [propValue.ImageUri] } : {},
+    update: (propValue, { [propValue.ImageUri]: location }) =>
+      Object.assign(propValue, { ImageUri: location }),
+  },
 }
 
 /**
