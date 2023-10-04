@@ -43,6 +43,8 @@ async function _packageFiles(toPackage, stack) {
   // Package all the files which are ready
   await Promise.all(
     filesReadyToPackage.map(async ([filePath, file]) => {
+      // Mark the file as being packaged so that it is not packaged in duplicate
+      toPackage[filePath].status = "packaging"
       // Package each selected file and update its status
       Object.assign(
         toPackage[filePath],
@@ -75,6 +77,8 @@ function getFilesReadyToPackage(toPackage) {
     ([, file]) =>
       // Have not been packaged yet (i.e. has location set)
       !file.location &&
+      // Is not being packaged
+      file.status !== "packaging" &&
       // And whose dependencies have all been packaged already
       file.dependsOn.reduce(
         (allPackaged, path) => allPackaged && Boolean(toPackage[path].location),
