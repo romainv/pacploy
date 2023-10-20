@@ -69,7 +69,7 @@ export default async function listPackagedFiles({
         propName,
         propValue,
       )
-      if (resourceProp.packaged.S3) {
+      if (resourceProp.packaged && resourceProp.packaged.S3) {
         // If current resource has files packaged to S3
         for (const { Bucket: bucket, Key: key } of resourceProp.packaged.S3) {
           if (
