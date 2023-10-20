@@ -435,6 +435,37 @@ const packingList = {
     update: (propValue, { [propValue.ImageUri]: location }) =>
       Object.assign(propValue, { ImageUri: location }),
   },
+  "AWS::Cognito::UserPool.VerificationMessageTemplate": {
+    toPackage: (propValue) =>
+      typeof propValue.EmailMessageByCode === "string" &&
+      propValue.EmailMessageByCode.startsWith(".")
+        ? { INLINE: [propValue.EmailMessageByCode] }
+        : typeof propValue.EmailMessageByLink === "string" &&
+          propValue.EmailMessageByLink.startsWith(".")
+        ? { INLINE: [propValue.EmailMessageByLink] }
+        : {},
+    packaged: () => {}, // Not specified for inline
+    update: (propValue, locations) =>
+      Object.assign(
+        propValue,
+        locations[propValue].EmailMessageByCode
+          ? {
+              EmailMessageByCode: readFileSync(
+                locations[propValue].EmailMessageByCode,
+                "utf8",
+              ),
+            }
+          : {},
+        locations[propValue].EmailMessageByLink
+          ? {
+              EmailMessageByLink: readFileSync(
+                locations[propValue].EmailMessageByLink,
+                "utf8",
+              ),
+            }
+          : {},
+      ),
+  },
 }
 
 /**
