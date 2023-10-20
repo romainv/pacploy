@@ -437,9 +437,9 @@ const packingList = {
   },
   "AWS::Cognito::UserPool.VerificationMessageTemplate": {
     toPackage: (propValue) =>
-      typeof propValue.EmailMessageByCode === "string" &&
-      propValue.EmailMessageByCode.startsWith(".")
-        ? { INLINE: [propValue.EmailMessageByCode] }
+      typeof propValue.EmailMessage === "string" &&
+      propValue.EmailMessage.startsWith(".")
+        ? { INLINE: [propValue.EmailMessage] }
         : typeof propValue.EmailMessageByLink === "string" &&
           propValue.EmailMessageByLink.startsWith(".")
         ? { INLINE: [propValue.EmailMessageByLink] }
@@ -448,18 +448,18 @@ const packingList = {
     update: (propValue, locations) =>
       Object.assign(
         propValue,
-        locations[propValue].EmailMessageByCode
+        typeof propValue.EmailMessage === "string"
           ? {
-              EmailMessageByCode: readFileSync(
-                locations[propValue].EmailMessageByCode,
+              EmailMessage: readFileSync(
+                locations[propValue.EmailMessage],
                 "utf8",
               ),
             }
           : {},
-        locations[propValue].EmailMessageByLink
+        typeof propValue.EmailMessageByLink === "string"
           ? {
               EmailMessageByLink: readFileSync(
-                locations[propValue].EmailMessageByLink,
+                locations[propValue.EmailMessageByLink],
                 "utf8",
               ),
             }
