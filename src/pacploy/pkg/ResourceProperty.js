@@ -466,6 +466,17 @@ const packingList = {
           : {},
       ),
   },
+  "AWS::Cognito::UserPoolUICustomizationAttachment.CSS": {
+    toPackage: (propValue) =>
+      typeof propValue === "string" && propValue.startsWith(".")
+        ? { INLINE: [propValue] }
+        : {},
+    packaged: () => {}, // Not specified for inline
+    update: (propValue, locations) =>
+      typeof propValue === "string"
+        ? readFileSync(locations[propValue], "utf8")
+        : "",
+  },
 }
 
 /**
