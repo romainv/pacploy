@@ -21,7 +21,7 @@ jobs:
           and not the \`Squash and merge\` one.\n\n\nThis PR is automatically
           created when a commit is pushed to the main branch. It will deploy
           the main branch to production.\n\n\nProceed with caution!\n\n\nCheck
-          list:\n\n- [ ] Choose `Create a merge commit`\n- [ ] Bump the version number." |
+          list:\n\n- [ ] Choose \`Create a merge commit\`\n- [ ] Bump the version number." |
           gh pr create
           --title "Publish"
           --base production

@@ -127,16 +127,21 @@ const formats = {
   ".env": (newOutputs, path) => {
     // If the target file exists, add a line break at the end
     if (existsSync(path)) appendFileSync(path, "\n", "utf8")
-    // To avoid conflicts, we leave any existing values untouched
-    // and only add new ones
+    // Retrieve the existing values so we don't duplicate them
+    const existingLines = existsSync(path)
+      ? readFileSync(path, "utf8").split("\n")
+      : []
+    // To avoid conflicts, we leave any existing values untouched and only add
+    // new ones
     appendFileSync(
       path,
-      // Convert the new outputs keys to MACRO_CASE  and escape specialy
+      // Convert the new outputs keys to MACRO_CASE and escape special
       // characters in the value
       Object.entries(newOutputs)
         .map(
           ([key, value]) => `${camelToMacroCase(key)}=${JSON.stringify(value)}`,
         )
+        .filter((line) => !existingLines.includes(line)) // Remove duplicates
         .join("\n"),
       "utf8",
     )
