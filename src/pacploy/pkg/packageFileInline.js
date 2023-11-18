@@ -15,7 +15,7 @@ export default async function packageFileInline(file, { forceUpload = false }) {
   // Retrieve content md5 hash
   const hash = await md5(file.path)
   // Check if object already exists
-  const targetPath = join(tmp.tmpdir, `${hash}.${extname(file.path)}`)
+  const targetPath = join(tmp.tmpdir, `${hash}${extname(file.path)}`)
   let status = existsSync(targetPath) ? "exists" : ""
   if (forceUpload || status !== "exists") {
     // If object doesn't exist yet, or upload was forced: update it
