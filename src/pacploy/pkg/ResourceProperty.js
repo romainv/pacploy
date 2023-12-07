@@ -1,4 +1,5 @@
 import { readFileSync } from "fs"
+import { basename, extname } from "path"
 
 /**
  * Represents a Cloudformation resource property to understand its current
@@ -10,18 +11,24 @@ export default class ResourceProperty {
    * @param {String} resourceType The resource Type
    * @param {String} propName The property name
    * @param {String} propValue The property value
+   * @param {String} [deployBucket] The bucket to which the stack's template was
+   * packaged. This is only passed by the listPackagedFiles function
    */
-  constructor(resourceType, propName, propValue) {
+  constructor(resourceType, propName, propValue, deployBucket) {
     // Record the arguments
     this.resourceType = resourceType
     this.propName = propName
     this.propValue = propValue
     // Retrieve the packing properties, if the resource property is supported
     const packingDef = packingList[`${resourceType}.${propName}`]
-    this.toPackage = packingDef ? packingDef.toPackage(this.propValue) : {}
-    this.packaged = packingDef ? packingDef.packaged(this.propValue) : {}
+    this.toPackage = packingDef
+      ? packingDef.toPackage(this.propValue, deployBucket)
+      : {}
+    this.packaged = packingDef
+      ? packingDef.packaged(this.propValue, deployBucket)
+      : {}
     this.updatePropValue = (locations) =>
-      packingDef.update(this.propValue, locations)
+      packingDef.update(this.propValue, locations, deployBucket)
   }
 }
 
@@ -482,20 +489,15 @@ const packingList = {
       typeof propValue === "string" && propValue.startsWith(".")
         ? { S3: [propValue] }
         : {},
-    packaged: (propValue) =>
+    packaged: (propValue, deployBucket) =>
       typeof propValue === "string" &&
-      !propValue.startsWith(".") &&
-      propValue.split("!").length === 2
+      // If the filename without extension is a md5 hash
+      /^[a-f0-9]{32}$/.test(basename(propValue, extname(propValue)))
         ? {
-            S3: [
-              { Bucket: propValue.split("!")[0], Key: propValue.split("!")[1] },
-            ],
+            S3: [{ Bucket: deployBucket, Key: propValue }],
           }
         : {},
-    update: (propValue, { [propValue]: location }) =>
-      // The final value should be a S3 key, but we need to retain the bucket
-      // name hence using it in the key name
-      `${parseS3Uri(location).Bucket}!${parseS3Uri(location).Key}`,
+    update: (propValue, { [propValue]: location }) => parseS3Uri(location).Key,
   },
 }
 

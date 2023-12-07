@@ -68,6 +68,7 @@ export default async function listPackagedFiles({
         resourceType,
         propName,
         propValue,
+        deployBucket,
       )
       if (resourceProp.packaged && resourceProp.packaged.S3) {
         // If current resource has files packaged to S3
