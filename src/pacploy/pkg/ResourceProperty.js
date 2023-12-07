@@ -477,6 +477,26 @@ const packingList = {
         ? readFileSync(locations[propValue], "utf8")
         : "",
   },
+  "AWS::MWAA::Environment.RequirementsS3Path": {
+    toPackage: (propValue) =>
+      typeof propValue === "string" && propValue.startsWith(".")
+        ? { S3: [propValue] }
+        : {},
+    packaged: (propValue) =>
+      typeof propValue === "string" &&
+      !propValue.startsWith(".") &&
+      propValue.split("!").length === 2
+        ? {
+            S3: [
+              { Bucket: propValue.split("!")[0], Key: propValue.split("!")[1] },
+            ],
+          }
+        : {},
+    update: (propValue, { [propValue]: location }) =>
+      // The final value should be a S3 key, but we need to retain the bucket
+      // name hence using it in the key name
+      `${parseS3Uri(location).Bucket}!${parseS3Uri(location).Key}`,
+  },
 }
 
 /**
