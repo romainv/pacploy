@@ -499,6 +499,21 @@ const packingList = {
         : {},
     update: (propValue, { [propValue]: location }) => parseS3Uri(location).Key,
   },
+  "AWS::MWAA::Environment.PluginsS3Path": {
+    toPackage: (propValue) =>
+      typeof propValue === "string" && propValue.startsWith(".")
+        ? { S3: [propValue] }
+        : {},
+    packaged: (propValue, deployBucket) =>
+      typeof propValue === "string" &&
+      // If the filename without extension is a md5 hash
+      /^[a-f0-9]{32}$/.test(basename(propValue, extname(propValue)))
+        ? {
+            S3: [{ Bucket: deployBucket, Key: propValue }],
+          }
+        : {},
+    update: (propValue, { [propValue]: location }) => parseS3Uri(location).Key,
+  },
 }
 
 /**
