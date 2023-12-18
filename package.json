@@ -55,7 +55,7 @@
     "find-up": "^6.3.0",
     "glob": "^10.3.10",
     "locate-path": "^7.2.0",
-    "on-change": "^4.0.2",
+    "on-change": "^5.0.0",
     "progress": "^2.0.3",
     "tmp": "^0.2.1",
     "yaml-cfn": "^0.3.2",
