@@ -52,7 +52,7 @@
     "archiver": "^6.0.1",
     "dockerode": "^4.0.0",
     "enquirer": "^2.3.6",
-    "find-up": "^6.3.0",
+    "find-up": "^7.0.0",
     "glob": "^10.3.10",
     "locate-path": "^7.2.0",
     "on-change": "^4.0.2",
