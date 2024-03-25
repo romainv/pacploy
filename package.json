@@ -49,7 +49,7 @@
     "@aws-sdk/credential-provider-node": "^3.267.0",
     "@aws-sdk/lib-storage": "^3.267.0",
     "ansi-colors": "^4.1.3",
-    "archiver": "^6.0.1",
+    "archiver": "^7.0.1",
     "dockerode": "^4.0.0",
     "enquirer": "^2.3.6",
     "find-up": "^7.0.0",
