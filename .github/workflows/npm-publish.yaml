@@ -30,6 +30,6 @@ jobs:
         run: npm ci
       - run: npm test --if-present
       - name: Publish
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
