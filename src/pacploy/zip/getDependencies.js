@@ -36,13 +36,18 @@ export default function getDependencies(
         ? // We may have found the package, but it may not have package.json
           JSON.parse(readFileSync(depPath, "utf-8"))
         : {}
-      getDependencies(
-        Object.keys(dependencies),
-        dirname(depPath),
-        ignore,
-        deps,
-        depList, // Preserve the original list of dependencies to bundle
+      // Remove circular dependencies
+      const subDependencies = Object.keys(dependencies).filter(
+        (subDep) => !depList.includes(subDep),
       )
+      if (subDependencies.length > 0)
+        getDependencies(
+          subDependencies,
+          dirname(depPath),
+          ignore,
+          deps,
+          depList, // Preserve the original list of dependencies to bundle
+        )
     }
   })
   return deps
