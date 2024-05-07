@@ -7,3 +7,15 @@ updates:
       interval: weekly
     reviewers:
       - romainv
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    reviewers:
+      - romainv
+  - package-ecosystem: devcontainers
+    directory: "/"
+    schedule:
+      interval: weekly
+    reviewers:
+      - romainv
