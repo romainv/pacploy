@@ -77,14 +77,14 @@ const packingList = {
           // path to S3
           { S3: [propValue] }
         : typeof propValue.ImageUri === "string" &&
-          !isValidECRUri(propValue.ImageUri)
-        ? // If an ImageUri is provided, we should package the path to ECR
-          { ECR: [propValue.ImageUri] }
-        : typeof propValue.ZipFile === "string" &&
-          propValue.ZipFile.startsWith(".")
-        ? // If a path is provided for ZipFile, we should package it inline
-          { INLINE: [propValue.ZipFile] }
-        : {},
+            !isValidECRUri(propValue.ImageUri)
+          ? // If an ImageUri is provided, we should package the path to ECR
+            { ECR: [propValue.ImageUri] }
+          : typeof propValue.ZipFile === "string" &&
+              propValue.ZipFile.startsWith(".")
+            ? // If a path is provided for ZipFile, we should package it inline
+              { INLINE: [propValue.ZipFile] }
+            : {},
     packaged: (propValue) =>
       propValue.S3Bucket && propValue.S3Key
         ? {
@@ -96,8 +96,8 @@ const packingList = {
             ],
           }
         : propValue.ImageUri && isValidECRUri(propValue.ImageUri)
-        ? { ECR: [propValue.ImageUri] }
-        : {}, // We don't specify the case when content was already inline
+          ? { ECR: [propValue.ImageUri] }
+          : {}, // We don't specify the case when content was already inline
     update: (propValue, locations) =>
       // We use the same logic as toPackage to determine what was packaged,
       // except that we don't check again whether input was valid as this was
@@ -108,13 +108,13 @@ const packingList = {
             S3Key: parseS3Uri(locations[propValue]).Key,
           }
         : typeof propValue.ImageUri === "string"
-        ? Object.assign(propValue, {
-            ImageUri: locations[propValue.ImageUri],
-          })
-        : Object.assign(propValue, {
-            // Replace local path with file content
-            ZipFile: readFileSync(locations[propValue.ZipFile], "utf8"),
-          }),
+          ? Object.assign(propValue, {
+              ImageUri: locations[propValue.ImageUri],
+            })
+          : Object.assign(propValue, {
+              // Replace local path with file content
+              ZipFile: readFileSync(locations[propValue.ZipFile], "utf8"),
+            }),
   },
   "AWS::Serverless::Function.CodeUri": {
     toPackage: (propValue) =>
@@ -330,20 +330,20 @@ const packingList = {
             ],
           }
         : // Application code should be inserted inline (assumes string is the
-        // local path starting with ./ or ../)
-        propValue.ApplicationCodeConfiguration &&
-          propValue.ApplicationCodeConfiguration.CodeContent &&
-          typeof propValue.ApplicationCodeConfiguration.CodeContent
-            .TextContent === "string" &&
-          propValue.ApplicationCodeConfiguration.CodeContent.TextContent.startsWith(
-            ".",
-          )
-        ? {
-            INLINE: [
-              propValue.ApplicationCodeConfiguration.CodeContent.TextContent,
-            ],
-          }
-        : {},
+          // local path starting with ./ or ../)
+          propValue.ApplicationCodeConfiguration &&
+            propValue.ApplicationCodeConfiguration.CodeContent &&
+            typeof propValue.ApplicationCodeConfiguration.CodeContent
+              .TextContent === "string" &&
+            propValue.ApplicationCodeConfiguration.CodeContent.TextContent.startsWith(
+              ".",
+            )
+          ? {
+              INLINE: [
+                propValue.ApplicationCodeConfiguration.CodeContent.TextContent,
+              ],
+            }
+          : {},
     packaged: (propValue) =>
       propValue.ApplicationCodeConfiguration &&
       propValue.ApplicationCodeConfiguration.CodeContent &&
@@ -390,9 +390,9 @@ const packingList = {
                     },
                   }
                 : tmpLocation
-                ? // Replace local path with file content
-                  { TextContent: readFileSync(tmpLocation, "utf8") }
-                : {},
+                  ? // Replace local path with file content
+                    { TextContent: readFileSync(tmpLocation, "utf8") }
+                  : {},
             ),
           },
         ),
@@ -448,9 +448,9 @@ const packingList = {
       propValue.EmailMessage.startsWith(".")
         ? { INLINE: [propValue.EmailMessage] }
         : typeof propValue.EmailMessageByLink === "string" &&
-          propValue.EmailMessageByLink.startsWith(".")
-        ? { INLINE: [propValue.EmailMessageByLink] }
-        : {},
+            propValue.EmailMessageByLink.startsWith(".")
+          ? { INLINE: [propValue.EmailMessageByLink] }
+          : {},
     packaged: () => {}, // Not specified for inline
     update: (propValue, locations) =>
       Object.assign(

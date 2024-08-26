@@ -57,8 +57,8 @@ export default async function getChangeSetArgs({
                 typeof ParameterValue === "string"
                   ? ParameterValue
                   : Array.isArray(ParameterValue)
-                  ? ParameterValue.join(",")
-                  : JSON.stringify(ParameterValue),
+                    ? ParameterValue.join(",")
+                    : JSON.stringify(ParameterValue),
             },
       ),
     )

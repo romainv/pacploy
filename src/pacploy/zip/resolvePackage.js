@@ -21,7 +21,7 @@ export default function resolvePackage(name, from) {
   try {
     statSync(candidate) // Check if the path exists
     return realpathSync(candidate) // If it does, return the full path
-  } catch (ex) {
+  } catch (_) {
     try {
       // If the path didn't exist in local directory, try the parent folder
       return resolvePackage(name, dirname(from))

@@ -94,8 +94,8 @@ export default async function packageFileToECR(
   const status = forceUpload
     ? "forced"
     : statusMsg === "Layer already exists"
-    ? "exists"
-    : "updated"
+      ? "exists"
+      : "updated"
   // Return the image location and package status
   return {
     // We refer to the image by its hash so that CloudFormation can detect
