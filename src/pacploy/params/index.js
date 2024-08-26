@@ -121,10 +121,10 @@ export default class StackParams {
       // Convert JSON string into JSON object if needed
       stackParameters:
         typeof this.stackParameters === "function"
-          ? this.stackParameters(outputs)
+          ? await this.stackParameters(outputs)
           : typeof this.stackParameters === "string"
-          ? JSON.parse(this.stackParameters)
-          : this.stackParameters,
+            ? JSON.parse(this.stackParameters)
+            : this.stackParameters,
       // Convert JSON string into JSON object if needed
       stackTags:
         typeof this.stackTags === "string"
