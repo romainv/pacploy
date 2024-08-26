@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  NODE_VERSION: 18
+  NODE_VERSION: 20
 
 jobs:
   js_lint:
