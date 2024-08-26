@@ -39,6 +39,10 @@ export default [
     rules: {
       strict: 0,
       "prettier/prettier": "warn",
+      "no-unused-vars": [
+        "error",
+        { caughtErrors: "all", caughtErrorsIgnorePattern: "^_" },
+      ],
     },
   },
 ]
