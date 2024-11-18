@@ -1,6 +1,6 @@
 import { copyFile, existsSync } from "fs"
 import { extname, join } from "path"
-import md5 from "./md5.js"
+import hashContents from "./hashContents.js"
 import tmp from "tmp"
 
 /**
@@ -13,7 +13,7 @@ import tmp from "tmp"
  */
 export default async function packageFileInline(file, { forceUpload = false }) {
   // Retrieve content md5 hash
-  const hash = await md5(file.path)
+  const hash = await hashContents(file.path)
   // Check if object already exists
   const targetPath = join(tmp.tmpdir, `${hash}${extname(file.path)}`)
   let status = existsSync(targetPath) ? "exists" : ""
