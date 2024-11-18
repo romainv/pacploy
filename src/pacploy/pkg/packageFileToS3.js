@@ -4,7 +4,7 @@ import { extname, join } from "path"
 import updateTemplate from "./updateTemplate.js"
 import zip from "../zip/index.js"
 import isDir from "./isDir.js"
-import md5 from "./md5.js"
+import hashContents from "./hashContents.js"
 import tmp from "tmp"
 import {
   S3Client,
@@ -63,7 +63,7 @@ export default async function packageFileToS3(
           : "node_modules",
     })
   content = createReadStream(file.path) // This returns a Stream
-  hash = await md5(file.path)
+  hash = await hashContents(file.path)
 
   // Check if object needs to be uploaded (checks if a key with the same
   // content hash already exists)

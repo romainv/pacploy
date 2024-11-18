@@ -5,7 +5,7 @@ import {
   CloudFormationClient,
   GetTemplateCommand,
 } from "@aws-sdk/client-cloudformation"
-import md5 from "./md5.js"
+import hashContents from "./hashContents.js"
 import credentialDefaultProvider from "../credentialDefaultProvider.js"
 
 /**
@@ -56,7 +56,7 @@ export default async function listPackagedFiles({
     packaged.push({
       region,
       bucket: deployBucket,
-      key: `${await md5(originalContent)}.yaml`,
+      key: `${await hashContents(originalContent)}.yaml`,
     })
   }
   // Recursively retrieve the template's packaged resources
