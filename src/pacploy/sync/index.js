@@ -3,7 +3,7 @@ import { existsSync, readFileSync, writeFileSync, appendFileSync } from "fs"
 import { available as availableStatuses } from "../statuses.js"
 import getStackOutputs from "./getStackOutputs.js"
 import getStatus from "../getStatus/index.js"
-import md5 from "../pkg/md5.js"
+import hashContents from "../pkg/hashContents.js"
 import { basename, extname } from "path"
 
 /**
@@ -101,11 +101,11 @@ async function syncOutputs(newOutputs, path) {
   // If format is supported, retrieve how to update the target file
   const update = formats[extension]
   // Retrieve existing file's hash, if any
-  const hashBefore = existsSync(path) ? await md5(path) : undefined
+  const hashBefore = existsSync(path) ? await hashContents(path) : undefined
   // Merge with the new outputs and update the file
   update(newOutputs, path)
   // Check updated file's hash
-  const hashAfter = await md5(path)
+  const hashAfter = await hashContents(path)
   return hashAfter !== hashBefore
 }
 
